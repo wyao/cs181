@@ -100,7 +100,6 @@ def prune(dt, root, examples):
         dt.branches[attr] = leaf
         if accuracy(root, examples) > defaultPerformance:
           useDefault = False
-          print defaultPerformance, accuracy(root, examples)
           break
       # No pruning necessary
       if useDefault:
