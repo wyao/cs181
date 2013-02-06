@@ -77,6 +77,36 @@ def accuracy(dt, examples):
       correct += 1
   return correct/size
 
+def prune(dt, root, examples):
+  """ Assumptions/modifications:
+        labels must be binary
+        TODO: more assumptions here
+  """
+  NODE, LEAF = range(2)
+  for attr in dt.branches:
+    # Ignore leaves
+    if dt.branches[attr].nodetype is NODE:
+      # Bottom-up pruning
+      dt.branches[attr] = prune(dt.branches[attr], root, examples)
+
+      # Prune
+      defaultPerformance = accuracy(root, examples)
+      originalBranch = dt.branches[attr]
+
+      # Try both positive and negative labels
+      useDefault = True
+      for leaf in [DecisionTree(LEAF, classification=1), \
+                    DecisionTree(LEAF, classification=0)]:
+        dt.branches[attr] = leaf
+        if accuracy(root, examples) > defaultPerformance:
+          useDefault = False
+          print defaultPerformance, accuracy(root, examples)
+          break
+      # No pruning necessary
+      if useDefault:
+        dt.branches[attr] = originalBranch
+  return dt
+
 #---------
 
 def main():
