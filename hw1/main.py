@@ -1,6 +1,6 @@
 # main.py
 # -------
-# YOUR NAME HERE
+# Irene Chen and Willie Yao
 
 from dtree import *
 import sys
@@ -64,6 +64,21 @@ def validateInput(args):
       boostRounds = int(args_map['-b'])
     return [noisyFlag, pruneFlag, valSetSize, maxDepth, boostRounds]
 
+# Helper functions
+
+def accuracy(dt, examples):
+  """ returns correct/total """
+  correct = 0.
+  size = len(examples)
+
+  # Count up correct predictions given target attribute
+  for i in xrange(size):
+    if dt.predict(examples[i]) == examples[i].attrs[-1]:
+      correct += 1
+  return correct/size
+
+#---------
+
 def main():
     arguments = validateInput(sys.argv)
     noisyFlag, pruneFlag, valSetSize, maxDepth, boostRounds = arguments
@@ -91,6 +106,26 @@ def main():
     # ====================================
     # WRITE CODE FOR YOUR EXPERIMENTS HERE
     # ====================================
+
+    examples = dataset.examples
+
+    testPerformanceSum = 0.
+    trainPerformanceSum = 0.
+
+    # 10-fold cross validation
+    for i in xrange(0, 100, 10):
+      # Load the correct subset of examples
+      dataset.examples = examples[i:i+90]
+      dt = learn(dataset)
+
+      # Record performance
+      trainPerformanceSum += accuracy(dt, examples[i:i+90])
+      testPerformanceSum += accuracy(dt, examples[i+90:i+100])
+
+    print 'Average cross-validated training performance: %s' % \
+      str(trainPerformanceSum / 10)
+    print 'Average cross-validated test performance: %s' % \
+      str(testPerformanceSum / 10)
 
 main()
 
