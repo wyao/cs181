@@ -4,6 +4,9 @@
 
 from dtree import *
 import sys
+import py.test
+import matplotlib.pyplot as plt
+from pylab import *
 
 class Globals:
     noisyFlag = False
@@ -155,6 +158,36 @@ def main():
       str(trainPerformanceSum / 10)
     print 'Average cross-validated test performance: %s' % \
       str(testPerformanceSum / 10)
+
+    # Part 2 b
+    test_results = []
+    train_results = []
+
+    for i in xrange(1,81):
+        testPerformanceSum = 0.
+        trainPerformanceSum = 0.
+
+        for j in xrange(0,100,10):
+            dataset.examples = examples[j:j-i+90]
+            dt = learn(dataset)
+            trainPerformanceSum += accuracy(dt, examples[j-i+90:j+90])
+            testPerformanceSum += accuracy(dt, examples[j-1+90:j+90])
+
+        train_results.append(trainPerformanceSum/10)
+        test_results.append(testPerformanceSum/10)
+
+    # Plot
+    plt.clf()
+
+    xs = range(1,81)
+
+    plt.plot(xs, train_results, '-b')
+    plt.plot(xs, test_results, '-r')
+    plt.ylabel('y')
+    plt.xlabel('x')
+    plt.title('Train Results')
+    plt.legend(["training", "test"])
+    plt.show()
 
 main()
 
