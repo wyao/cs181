@@ -68,6 +68,7 @@ def validateInput(args):
     return [noisyFlag, pruneFlag, valSetSize, maxDepth, boostRounds]
 
 # Helper functions
+NODE, LEAF = range(2)
 
 def accuracy(dt, examples):
   """ returns correct/total """
@@ -80,33 +81,41 @@ def accuracy(dt, examples):
       correct += 1
   return correct/size
 
-def prune(dt, root, examples):
-  """ Assumptions/modifications:
-        labels must be binary
-        TODO: more assumptions here
+def getClassification(dt):
+  """ Returns majority classfication, or None if pruning not necessary.
+      Defaults to positive.
   """
-  NODE, LEAF = range(2)
+  labelCount = [0,0]
+  for attr in dt.branches:
+    if dt.branches[attr].nodetype is NODE:
+      return None
+    labelCount[dt.branches[attr].classification] += 1
+  return 0 if labelCount[0] < labelCount[1] else 1
+
+
+def prune(dt, root, examples):
+  """ Assumptions:
+        Pruning terminates as soon as a node rejects pruning.
+        Labels must be binary.
+        This implementation cannot prune a tree that has a depth < 2.
+  """
   for attr in dt.branches:
     # Ignore leaves
     if dt.branches[attr].nodetype is NODE:
       # Bottom-up pruning
       dt.branches[attr] = prune(dt.branches[attr], root, examples)
 
-      # Prune
-      defaultPerformance = accuracy(root, examples)
-      originalBranch = dt.branches[attr]
+      # Prune (if applicable)
+      classfication = getClassification(dt.branches[attr])
+      if classfication is not None:
+        # Test performance without pruning
+        originalPerformance = accuracy(root, examples)
+        originalBranch = dt.branches[attr]
 
-      # Try both positive and negative labels
-      useDefault = True
-      for leaf in [DecisionTree(LEAF, classification=1), \
-                    DecisionTree(LEAF, classification=0)]:
-        dt.branches[attr] = leaf
-        if accuracy(root, examples) > defaultPerformance:
-          useDefault = False
-          break
-      # No pruning necessary
-      if useDefault:
-        dt.branches[attr] = originalBranch
+        # Test performance with pruning
+        dt.branches[attr] = DecisionTree(LEAF, classification=classfication)
+        if accuracy(root, examples) < originalPerformance:
+          dt.branches[attr] = originalBranch
   return dt
 
 #---------
@@ -141,53 +150,66 @@ def main():
 
     examples = dataset.examples
 
-    testPerformanceSum = 0.
-    trainPerformanceSum = 0.
+    # Part 2 (a)
+    if not pruneFlag:
+      testPerformanceSum = 0.
+      trainPerformanceSum = 0.
 
-    # 10-fold cross validation
-    for i in xrange(0, 100, 10):
-      # Load the correct subset of examples
-      dataset.examples = examples[i:i+90]
-      dt = learn(dataset)
+      # 10-fold cross validation
+      for i in xrange(0, 100, 10):
+        # Load the correct subset of examples
+        dataset.examples = examples[i:i+90]
+        dt = learn(dataset)
 
-      # Record performance
-      trainPerformanceSum += accuracy(dt, examples[i:i+90])
-      testPerformanceSum += accuracy(dt, examples[i+90:i+100])
+        # Record performance
+        trainPerformanceSum += accuracy(dt, examples[i:i+90])
+        testPerformanceSum += accuracy(dt, examples[i+90:i+100])
 
-    print 'Average cross-validated training performance: %s' % \
-      str(trainPerformanceSum / 10)
-    print 'Average cross-validated test performance: %s' % \
-      str(testPerformanceSum / 10)
+      print 'Average cross-validated training performance: %s' % \
+        str(trainPerformanceSum / 10)
+      print 'Average cross-validated test performance: %s' % \
+        str(testPerformanceSum / 10)
 
-    # Part 2 b
-    test_results = []
-    train_results = []
+    # Part 2 (b)
+    elif pruneFlag:
+      test_results = []
+      train_results = []
 
-    for i in xrange(1,81):
-        testPerformanceSum = 0.
-        trainPerformanceSum = 0.
+      # For validation set range [1,80]
+      for i in xrange(1,81):
+          testPerformanceSum = 0.
+          trainPerformanceSum = 0.
 
-        for j in xrange(0,100,10):
-            dataset.examples = examples[j:j-i+90]
-            dt = learn(dataset)
-            trainPerformanceSum += accuracy(dt, examples[j-i+90:j+90])
-            testPerformanceSum += accuracy(dt, examples[j-1+90:j+90])
+          # Take the average of 10 different validation sets
+          for j in xrange(0,100,10):
+              # Partition: trainStart:validationStart:testStart:end
+              trainStart = j
+              validationStart = j+90-i
+              testStart = j+90
+              end = j + 100
 
-        train_results.append(trainPerformanceSum/10)
-        test_results.append(testPerformanceSum/10)
+              dataset.examples = examples[trainStart:validationStart]
+              dt = learn(dataset)
+              dt = prune(dt, dt, examples[validationStart:testStart])
 
-    # Plot
-    plt.clf()
+              trainPerformanceSum += accuracy(dt, examples[trainStart:validationStart])
+              testPerformanceSum += accuracy(dt, examples[testStart:end])
 
-    xs = range(1,81)
+          train_results.append(trainPerformanceSum/10)
+          test_results.append(testPerformanceSum/10)
 
-    plt.plot(xs, train_results, '-b')
-    plt.plot(xs, test_results, '-r')
-    plt.ylabel('y')
-    plt.xlabel('x')
-    plt.title('Train Results')
-    plt.legend(["training", "test"])
-    plt.show()
+      # Plot
+      plt.clf()
+
+      xs = range(1,81)
+
+      plt.plot(xs, train_results, '-b')
+      plt.plot(xs, test_results, '-r')
+      plt.ylabel('y')
+      plt.xlabel('x')
+      plt.title('Train Results')
+      plt.legend(["training", "test"], 'best')
+      plt.show()
 
 main()
 
