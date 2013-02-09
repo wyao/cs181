@@ -137,16 +137,14 @@ def alpha(error):
 def normalize_weights(examples):
     "given example weights, rescales so that sum is size"
     size = len(examples)
-    totalWeight = 0.
-
     # find total weight by iterating through examples
-    for i in xrange(size):
-        totalWeight += examples[i].weight
+    totalWeight = sum([examples[i].weight for i in xrange(size)])
+    newExamples = examples
 
     # normalize weights so all weights sum to number of examples
     for i in xrange(size):
-        examples[i].weight = examples[i].weight*size/totalWeight
-    return examples
+        newExamples[i].weight = examples[i].weight*size/totalWeight
+    return newExamples
 
 def update_weights(dt, examples):
     "applies math formulas to update weights based on dt"
@@ -154,15 +152,16 @@ def update_weights(dt, examples):
     total = 0.
     error = calc_error(dt, examples)
 
+    newExamples = examples
+
     # change weights depending on accuracy
     for i in xrange(size):
         if examples[i].attrs[9] == classify(dt, examples[i]):
-            examples[i].weight = examples[i].weight*math.exp(-1.*alpha(error))
+            newExamples[i].weight = examples[i].weight*math.exp(-1.*alpha(error))
         else:
-            examples[i].weight = examples[i].weight*math.exp(alpha(error))
+            newExamples[i].weight = examples[i].weight*math.exp(alpha(error))
     # normalize weights
-    examples = normalize_weights(examples)
-    return examples
+    return normalize_weights(newExamples)
 
 def new_weights(dt, examples):
     "calculates new weights for examples and decision tree weight"
