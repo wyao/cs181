@@ -3,10 +3,12 @@
 # Irene Chen and Willie Yao
 
 from dtree import *
-import sys
-import py.test
-import matplotlib.pyplot as plt
 from pylab import *
+
+import math
+import matplotlib.pyplot as plt
+import py.test
+import sys
 
 class Globals:
     noisyFlag = False
@@ -117,6 +119,58 @@ def prune(dt, root, examples):
         if accuracy(root, examples) < originalPerformance:
           dt.branches[attr] = originalBranch
   return dt
+
+def calc_error(dt, examples):
+    "calculate the weighted error of a dt"
+    error = 0.
+    size = len(examples)
+
+    # sum errors weights that dt classifies incorrectly
+    for i in xrange(size):
+        if examples[i].attrs[9] != classify(dt, examples[i]):
+            error += examples[i].weight
+    return error/size # nomalize to distribution
+
+def alpha(error):
+    return 0.5 * math.log((1.-error)/error)
+
+def normalize_weights(examples):
+    "given example weights, rescales so that sum is size"
+    size = len(examples)
+    totalWeight = 0.
+
+    # find total weight by iterating through examples
+    for i in xrange(size):
+        totalWeight += examples[i].weight
+
+    # normalize weights so all weights sum to number of examples
+    for i in xrange(size):
+        examples[i].weight = examples[i].weight*size/totalWeight
+    return examples
+
+def update_weights(dt, examples):
+    "applies math formulas to update weights based on dt"
+    size = len(examples)
+    total = 0.
+    error = calc_error(dt, examples)
+
+    # change weights depending on accuracy
+    for i in xrange(size):
+        if examples[i].attrs[9] == classify(dt, examples[i]):
+            examples[i].weight = examples[i].weight*math.exp(-1.*alpha(error))
+        else:
+            examples[i].weight = examples[i].weight*math.exp(alpha(error))
+    # normalize weights
+    examples = normalize_weights(examples)
+    return examples
+
+def new_weights(dt, examples):
+    "calculates new weights for examples and decision tree weight"
+    error = calc_error(dt, examples)
+    treeWeight = alpha(error)
+
+    examples = update_weights(dt, examples)
+    return examples, treeWeight
 
 #---------
 
