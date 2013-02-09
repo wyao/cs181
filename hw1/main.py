@@ -28,6 +28,8 @@ def classify(decisionTree, example):
 def learn(dataset, boostRounds=-1, maxDepth=-1):
     learner = DecisionTreeLearner()
     learner.train(dataset, boostRounds, maxDepth)
+    print boostRounds
+    print learner.dt
     return learner.dt
 
 # main
@@ -72,15 +74,20 @@ def validateInput(args):
 # Helper functions
 NODE, LEAF = range(2)
 
-def accuracy(dt, examples):
+def accuracy(dt, examples, isADT=False):
   """ returns correct/total """
   correct = 0.
   size = len(examples)
 
   # Count up correct predictions given target attribute
   for i in xrange(size):
-    if dt.predict(examples[i]) == examples[i].attrs[-1]:
-      correct += 1
+    if isADT:
+      # dt in this case is an adt
+      if dt.classify(examples[i]) == examples[i].attrs[-1]:
+        correct += 1
+    else:
+      if dt.predict(examples[i]) == examples[i].attrs[-1]:
+        correct += 1
   return correct/size
 
 def getClassification(dt):
@@ -172,23 +179,25 @@ def new_weights(dt, examples):
     return examples, treeWeight
 
 class adaBoostTree:
-  def __init__(self, decisionTree, dataset, rounds, maxDepth):
+  def __init__(self, dataset, rounds, maxDepth):
     """ self.dts: List of decision trees
         self.weights: List of weights that correspond to dts
     """
     assert rounds > 0
 
     examples = dataset.examples
-    dts = [decisionTree]
-    weights = [1]
-    print [example.weight for example in examples]
-    for _ in xrange(rounds):
+
+    dts = []
+    weights = []
+
+    for _ in xrange(rounds + 1):
       dataset.examples = examples
       dt = learn(dataset, rounds, maxDepth)
+
       examples, weight = new_weights(dt, examples)
-      print [example.weight for example in examples]
-      dts.append(dt)norm
+      dts.append(dt)
       weights.append(weight)
+      # TODO: Could do testing here instead of having to repeat boost rounds?
 
     self.dts = dts
     self.weights = weights
@@ -196,7 +205,7 @@ class adaBoostTree:
   def classify(self, example):
     """ Defaults to positive. """
     votes = [0.,0.]
-    for dt, weight, in zip(self.dts, self.weights):
+    for dt, weight in zip(self.dts, self.weights):
       classification = classify(dt, example)
       votes[classification] += weight * votes[classification]
     return 0 if votes[0] < votes[1] else 1
@@ -295,10 +304,39 @@ def main():
 
     # Part 3
     elif boostRounds > 0:
-      dataset.examples = examples[:80]
-      dt = learn(dataset)
-      adt = adaBoostTree(dt, dataset, boostRounds, maxDepth)
+      test_results = []
+      # For boosting rounds [1,30]
+      for i in xrange(1,3):
+          testPerformanceSum = 0.
+          dataset.examples = examples[0:90]
+          adt = adaBoostTree(dataset, i, None)
+          """
+          # Take the average of 10 different training sets
+          for j in xrange(0,40,10):
+              # Partition: trainStart:testStart:end
+              trainStart = j
+              testStart = j+90
+              end = j+100
 
+              dataset.examples = examples[trainStart:testStart]
+              adt = adaBoostTree(dataset, i, None) #TODO
+
+              testPerformanceSum += accuracy(adt, examples[testStart:end], True)
+
+          test_results.append(testPerformanceSum/10)
+          """
+      """
+      # Plot
+      plt.clf()
+
+      xs = range(1,6)
+
+      plt.plot(xs, test_results, '-r')
+      plt.ylabel('Performance')
+      plt.xlabel('Number of Boosting Rounds')
+      plt.title('AdaBoosting Test performance')
+      plt.show()
+      """
 main()
 
 
