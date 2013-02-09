@@ -25,9 +25,9 @@ def classify(decisionTree, example):
 
 ##Learn
 #-------
-def learn(dataset):
+def learn(dataset, boostRounds=-1, maxDepth=-1):
     learner = DecisionTreeLearner()
-    learner.train( dataset)
+    learner.train(dataset, boostRounds, maxDepth)
     return learner.dt
 
 # main
@@ -171,6 +171,36 @@ def new_weights(dt, examples):
     examples = update_weights(dt, examples)
     return examples, treeWeight
 
+class adaBoostTree:
+  def __init__(self, decisionTree, dataset, rounds, maxDepth):
+    """ self.dts: List of decision trees
+        self.weights: List of weights that correspond to dts
+    """
+    assert rounds > 0
+
+    examples = dataset.examples
+    dts = [decisionTree]
+    weights = [1]
+    print [example.weight for example in examples]
+    for _ in xrange(rounds):
+      dataset.examples = examples
+      dt = learn(dataset, rounds, maxDepth)
+      examples, weight = new_weights(dt, examples)
+      print [example.weight for example in examples]
+      dts.append(dt)norm
+      weights.append(weight)
+
+    self.dts = dts
+    self.weights = weights
+
+  def classify(self, example):
+    """ Defaults to positive. """
+    votes = [0.,0.]
+    for dt, weight, in zip(self.dts, self.weights):
+      classification = classify(dt, example)
+      votes[classification] += weight * votes[classification]
+    return 0 if votes[0] < votes[1] else 1
+
 #---------
 
 def main():
@@ -204,27 +234,26 @@ def main():
     examples = dataset.examples
 
     # Part 2 (a)
-    if not pruneFlag:
-      testPerformanceSum = 0.
-      trainPerformanceSum = 0.
+    testPerformanceSum = 0.
+    trainPerformanceSum = 0.
 
-      # 10-fold cross validation
-      for i in xrange(0, 100, 10):
-        # Load the correct subset of examples
-        dataset.examples = examples[i:i+90]
-        dt = learn(dataset)
+    # 10-fold cross validation
+    for i in xrange(0, 100, 10):
+      # Load the correct subset of examples
+      dataset.examples = examples[i:i+90]
+      dt = learn(dataset)
 
-        # Record performance
-        trainPerformanceSum += accuracy(dt, examples[i:i+90])
-        testPerformanceSum += accuracy(dt, examples[i+90:i+100])
+      # Record performance
+      trainPerformanceSum += accuracy(dt, examples[i:i+90])
+      testPerformanceSum += accuracy(dt, examples[i+90:i+100])
 
-      print 'Average cross-validated training performance: %s' % \
-        str(trainPerformanceSum / 10)
-      print 'Average cross-validated test performance: %s' % \
-        str(testPerformanceSum / 10)
+    print 'Average cross-validated training performance: %s' % \
+      str(trainPerformanceSum / 10)
+    print 'Average cross-validated test performance: %s' % \
+      str(testPerformanceSum / 10)
 
     # Part 2 (b)
-    elif pruneFlag:
+    if pruneFlag:
       test_results = []
       train_results = []
 
@@ -239,7 +268,7 @@ def main():
               trainStart = j
               validationStart = j+90-i
               testStart = j+90
-              end = j + 100
+              end = j+100
 
               dataset.examples = examples[trainStart:validationStart]
               dt = learn(dataset)
@@ -263,6 +292,12 @@ def main():
       plt.title('Train Results')
       plt.legend(["training", "test"], 'best')
       plt.show()
+
+    # Part 3
+    elif boostRounds > 0:
+      dataset.examples = examples[:80]
+      dt = learn(dataset)
+      adt = adaBoostTree(dt, dataset, boostRounds, maxDepth)
 
 main()
 
