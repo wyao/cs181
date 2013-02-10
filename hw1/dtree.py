@@ -310,27 +310,28 @@ class DecisionTreeLearner(Learner):
     def predict(self, example):
         return self.dt.predict(example)
 
-    def train(self, dataset, boostRounds, maxDepth):
+    def train(self, dataset, boostRounds):
         self.dataset = dataset
         self.attrnames = dataset.attrnames
         self.boostRounds = boostRounds
-        self.maxDepth = maxDepth
+        self.maxDepth = dataset.max_depth
         self.dt = self.decision_tree_learning(dataset.examples, dataset.inputs)
 
-    def decision_tree_learning(self, examples, attrs, default=None):
+    def decision_tree_learning(self, examples, attrs, default=None, depth=0):
         if len(examples) == 0:
             return DecisionTree(DecisionTree.LEAF, classification=default)
         elif self.all_same_class(examples):
             return DecisionTree(DecisionTree.LEAF,
                                 classification=examples[0].attrs[self.dataset.target])
-        elif  len(attrs) == 0:
+        # Consider max depth
+        elif  len(attrs) == 0 or (self.maxDepth > 0 and depth == self.maxDepth):
             return DecisionTree(DecisionTree.LEAF, classification=self.majority_value(examples))
         else:
             best = self.choose_attribute(attrs, examples)
             tree = DecisionTree(DecisionTree.NODE, attr=best, attrname=self.attrnames[best])
             for (v, examples_i) in self.split_by(best, examples):
                 subtree = self.decision_tree_learning(examples_i,
-                  removeall(best, attrs), self.majority_value(examples))
+                  removeall(best, attrs), self.majority_value(examples), depth+1)
                 tree.add(v, subtree)
             return tree
 

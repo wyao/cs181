@@ -25,9 +25,9 @@ def classify(decisionTree, example):
 
 ##Learn
 #-------
-def learn(dataset, boostRounds=-1, maxDepth=-1):
+def learn(dataset, boostRounds=-1):
     learner = DecisionTreeLearner()
-    learner.train(dataset, boostRounds, maxDepth)
+    learner.train(dataset, boostRounds)
     return learner.dt
 
 # main
@@ -177,7 +177,7 @@ def new_weights(dt, examples):
     return examples, treeWeight
 
 class adaBoostTree:
-  def __init__(self, dataset, rounds, maxDepth):
+  def __init__(self, dataset, rounds):
     """ self.dts: List of decision trees
         self.weights: List of weights that correspond to dts
     """
@@ -190,7 +190,7 @@ class adaBoostTree:
 
     for _ in xrange(rounds + 1):
       dataset.examples = examples
-      dt = learn(dataset, rounds, maxDepth)
+      dt = learn(dataset, rounds)
 
       examples, weight = new_weights(dt, examples)
       dts.append(dt)
@@ -320,7 +320,7 @@ def main():
                 e.weight = 1
 
               dataset.examples = examples[trainStart:testStart]
-              adt = adaBoostTree(dataset, i, None) #TODO
+              adt = adaBoostTree(dataset, i)
 
               testPerformanceSum += accuracy(adt, examples[testStart:end], True)
 
