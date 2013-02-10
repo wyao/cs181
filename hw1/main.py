@@ -28,8 +28,6 @@ def classify(decisionTree, example):
 def learn(dataset, boostRounds=-1, maxDepth=-1):
     learner = DecisionTreeLearner()
     learner.train(dataset, boostRounds, maxDepth)
-    print boostRounds
-    print learner.dt
     return learner.dt
 
 # main
@@ -306,17 +304,20 @@ def main():
     elif boostRounds > 0:
       test_results = []
       # For boosting rounds [1,30]
-      for i in xrange(1,3):
+      for i in xrange(1,8):
+
           testPerformanceSum = 0.
-          dataset.examples = examples[0:90]
-          adt = adaBoostTree(dataset, i, None)
-          """
+
           # Take the average of 10 different training sets
-          for j in xrange(0,40,10):
+          for j in xrange(0,100,10):
               # Partition: trainStart:testStart:end
               trainStart = j
               testStart = j+90
               end = j+100
+
+              # Clear weights
+              for e in examples:
+                e.weight = 1
 
               dataset.examples = examples[trainStart:testStart]
               adt = adaBoostTree(dataset, i, None) #TODO
@@ -324,19 +325,18 @@ def main():
               testPerformanceSum += accuracy(adt, examples[testStart:end], True)
 
           test_results.append(testPerformanceSum/10)
-          """
-      """
+
       # Plot
       plt.clf()
 
-      xs = range(1,6)
+      xs = range(1,8)
 
       plt.plot(xs, test_results, '-r')
       plt.ylabel('Performance')
       plt.xlabel('Number of Boosting Rounds')
       plt.title('AdaBoosting Test performance')
       plt.show()
-      """
+
 main()
 
 
