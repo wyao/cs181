@@ -25,9 +25,9 @@ def classify(decisionTree, example):
 
 ##Learn
 #-------
-def learn(dataset, boostRounds=-1):
+def learn(dataset):
     learner = DecisionTreeLearner()
-    learner.train(dataset, boostRounds)
+    learner.train(dataset)
     return learner.dt
 
 # main
@@ -123,6 +123,8 @@ def prune(dt, root, examples):
           dt.branches[attr] = originalBranch
   return dt
 
+###########################################################################
+
 def calc_error(dt, examples):
     "calculate the weighted error of a dt"
     error = 0.
@@ -142,12 +144,10 @@ def normalize_weights(examples):
     size = len(examples)
     # find total weight by iterating through examples
     totalWeight = sum([examples[i].weight for i in xrange(size)])
-    newExamples = examples
 
     # normalize weights so all weights sum to number of examples
     for i in xrange(size):
-        newExamples[i].weight = examples[i].weight*size/totalWeight
-    return newExamples
+        examples[i].weight = examples[i].weight*size/totalWeight
 
 def update_weights(dt, examples):
     "applies math formulas to update weights based on dt"
@@ -155,56 +155,60 @@ def update_weights(dt, examples):
     total = 0.
     error = calc_error(dt, examples)
 
-    newExamples = examples
-
     # change weights depending on accuracy
     for i in xrange(size):
         if examples[i].attrs[9] == classify(dt, examples[i]):
-            newExamples[i].weight = examples[i].weight*math.exp(-1.*alpha(error))
+            examples[i].weight = examples[i].weight*math.exp(-1.*alpha(error))
         else:
-            newExamples[i].weight = examples[i].weight*math.exp(alpha(error))
+            examples[i].weight = examples[i].weight*math.exp(alpha(error))
     # normalize weights
-    return normalize_weights(newExamples)
+    normalize_weights(examples)
 
 def new_weights(dt, examples):
     "calculates new weights for examples and decision tree weight"
     error = calc_error(dt, examples)
     treeWeight = alpha(error)
 
-    examples = update_weights(dt, examples)
-    return examples, treeWeight
+    update_weights(dt, examples)
+    return treeWeight
+
+###########################################################################
+
+def AdtAccuracy(adt, examples):
+  """ returns correct/total """
+  correct = 0.
+  size = len(examples)
+
+  for i in xrange(size):
+    if adt.classify(examples[i]) == examples[i].attrs[-1]:
+      correct += 1
+  return correct/size
 
 class adaBoostTree:
-  def __init__(self, dataset, rounds):
+  def __init__(self, dataset):
     """ self.dts: List of decision trees
         self.weights: List of weights that correspond to dts
     """
-    assert rounds > 0
+    # Initial tree with no boosting
+    dt = learn(dataset)
 
-    examples = dataset.examples
+    self.dataset = dataset
+    self.weights = [new_weights(dt, dataset.examples)]
+    self.dts = [dt]
 
-    dts = []
-    weights = []
-
-    for _ in xrange(rounds + 1):
-      dataset.examples = examples
-      dt = learn(dataset, rounds)
-
-      examples, weight = new_weights(dt, examples)
-      dts.append(dt)
-      weights.append(weight)
-      # TODO: Could do testing here instead of having to repeat boost rounds?
-
-    self.dts = dts
-    self.weights = weights
+  def boost(self):
+    dt = learn(self.dataset)
+    weight = new_weights(dt, self.dataset.examples)
+    self.dts.append(dt)
+    self.weights.append(weight)
 
   def classify(self, example):
     """ Defaults to positive. """
     votes = [0.,0.]
     for dt, weight in zip(self.dts, self.weights):
-      classification = classify(dt, example)
-      votes[classification] += weight * votes[classification]
-    return 0 if votes[0] < votes[1] else 1
+      classification = dt.predict(example)
+      votes[classification] += weight
+    return 0 if votes[0] > votes[1] else 1
 
 #---------
 
@@ -238,8 +242,6 @@ def main():
 
     # Usage: main.py [-n] [-p [valSetSize]] [-b boostingRounds] [-d weakLearnerDepth]
     # Sanity checks
-    if boostRounds==0:
-      sys.exit("boostRounds cannot be 0. Exiting...")
     if maxDepth==0:
       sys.exit("maxDepth cannot be 0. Exiting...")
     if pruneFlag and (boostRounds > 0):
@@ -312,35 +314,35 @@ def main():
       plt.show()
 
     # Part 3
-    elif boostRounds > 0:
-      test_results = []
-      # For boosting rounds [1,30]
-      for i in xrange(1,8):
+    elif boostRounds > -1:
+      test_results = [0.]*boostRounds
 
-          testPerformanceSum = 0.
+      # Take the average of 10 different training sets
+      for j in xrange(0,100,10):
+        # Partition: trainStart:testStart:end
+        trainStart = j
+        testStart = j+90
+        end = j+100
 
-          # Take the average of 10 different training sets
-          for j in xrange(0,100,10):
-              # Partition: trainStart:testStart:end
-              trainStart = j
-              testStart = j+90
-              end = j+100
+        # Clear weights
+        for e in examples:
+          e.weight = 1
 
-              # Clear weights
-              for e in examples:
-                e.weight = 1
+        dataset.examples = examples[trainStart:testStart]
+        adt = adaBoostTree(dataset)
 
-              dataset.examples = examples[trainStart:testStart]
-              adt = adaBoostTree(dataset, i)
+        # Perform boosting
+        for i in xrange(boostRounds):
+          adt.boost()
+          test_results[i] += AdtAccuracy(adt, examples[testStart:end])
 
-              testPerformanceSum += accuracy(adt, examples[testStart:end], True)
-
-          test_results.append(testPerformanceSum/10)
-
+      test_results = [e/10. for e in test_results]
+      print test_results
       # Plot
+
       plt.clf()
 
-      xs = range(1,8)
+      xs = range(1, boostRounds+1)
 
       plt.plot(xs, test_results, '-r')
       plt.ylabel('Performance')

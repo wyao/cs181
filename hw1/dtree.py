@@ -310,10 +310,9 @@ class DecisionTreeLearner(Learner):
     def predict(self, example):
         return self.dt.predict(example)
 
-    def train(self, dataset, boostRounds):
+    def train(self, dataset):
         self.dataset = dataset
         self.attrnames = dataset.attrnames
-        self.boostRounds = boostRounds
         self.maxDepth = dataset.max_depth
         self.dt = self.decision_tree_learning(dataset.examples, dataset.inputs)
 
@@ -356,8 +355,8 @@ class DecisionTreeLearner(Learner):
 
     def count(self, attr, val, examples):
         # Weighted count
-        if self.boostRounds > 0:
-            return sum([example.weight for example in examples if example.attrs[attr] == val])
+        return sum([example.weight for example in examples \
+            if example.attrs[attr] == val])
         # Not weighted
         return count_if(lambda e: e.attrs[attr] == val, examples)
     
