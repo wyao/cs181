@@ -316,6 +316,10 @@ def main():
     # Part 3
     elif boostRounds > -1:
       test_results = [0.]*boostRounds
+      train_results = [0.]*boostRounds
+
+      if maxDepth > 0:
+        dataset.max_depth = maxDepth
 
       # Take the average of 10 different training sets
       for j in xrange(0,100,10):
@@ -335,16 +339,18 @@ def main():
         for i in xrange(boostRounds):
           adt.boost()
           test_results[i] += AdtAccuracy(adt, examples[testStart:end])
+          train_results[i] += AdtAccuracy(adt, examples[trainStart:testStart])
 
       test_results = [e/10. for e in test_results]
-      print test_results
-      # Plot
+      train_results = [e/10. for e in train_results]
 
+      # Plot
       plt.clf()
 
       xs = range(1, boostRounds+1)
 
       plt.plot(xs, test_results, '-r')
+      plt.plot(xs, train_results, '-b')
       plt.ylabel('Performance')
       plt.xlabel('Number of Boosting Rounds')
       plt.title('AdaBoosting Test performance')
