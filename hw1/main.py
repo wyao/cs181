@@ -72,24 +72,19 @@ def validateInput(args):
 # Helper functions
 NODE, LEAF = range(2)
 
-def accuracy(dt, examples, isADT=False):
+def accuracy(dt, examples):
   """ returns correct/total """
   correct = 0.
   size = len(examples)
 
   # Count up correct predictions given target attribute
   for i in xrange(size):
-    if isADT:
-      # dt in this case is an adt
-      if dt.classify(examples[i]) == examples[i].attrs[-1]:
-        correct += 1
-    else:
-      if dt.predict(examples[i]) == examples[i].attrs[-1]:
-        correct += 1
+    if dt.predict(examples[i]) == examples[i].attrs[-1]:
+      correct += 1
   return correct/size
 
 def getClassification(dt):
-  """ Returns majority classfication, or None if pruning not necessary.
+  """ Returns majority classification, or None if pruning not necessary.
       Defaults to positive.
   """
   labelCount = [0,0]
@@ -97,7 +92,7 @@ def getClassification(dt):
     if dt.branches[attr].nodetype is NODE:
       return None
     labelCount[dt.branches[attr].classification] += 1
-  return 0 if labelCount[0] < labelCount[1] else 1
+  return 0 if labelCount[0] > labelCount[1] else 1
 
 
 def prune(dt, root, examples):
@@ -106,21 +101,24 @@ def prune(dt, root, examples):
         Labels must be binary.
         This implementation cannot prune a tree that has a depth < 2.
   """
+  if dt.nodetype == LEAF:
+    return dt
+
   for attr in dt.branches:
     # Ignore leaves
     if dt.branches[attr].nodetype is NODE:
       # Bottom-up pruning
       dt.branches[attr] = prune(dt.branches[attr], root, examples)
 
-      # Prune (if applicable)
-      classfication = getClassification(dt.branches[attr])
-      if classfication is not None:
+      # Prune from 2 layers up (if applicable)
+      classification = getClassification(dt.branches[attr])
+      if classification is not None:
         # Test performance without pruning
         originalPerformance = accuracy(root, examples)
         originalBranch = dt.branches[attr]
 
         # Test performance with pruning
-        dt.branches[attr] = DecisionTree(LEAF, classification=classfication)
+        dt.branches[attr] = DecisionTree(LEAF, classification=classification)
         if accuracy(root, examples) < originalPerformance:
           dt.branches[attr] = originalBranch
   return dt
@@ -238,29 +236,42 @@ def main():
     # WRITE CODE FOR YOUR EXPERIMENTS HERE
     # ====================================
 
+    # Usage: main.py [-n] [-p [valSetSize]] [-b boostingRounds] [-d weakLearnerDepth]
+    # Sanity checks
+    if boostRounds==0:
+      sys.exit("boostRounds cannot be 0. Exiting...")
+    if maxDepth==0:
+      sys.exit("maxDepth cannot be 0. Exiting...")
+    if pruneFlag and (boostRounds > 0):
+      sys.exit("Cannot prune and boost at the same time. Exiting...")
+    if pruneFlag and (maxDepth > 0):
+      sys.exit("Cannot prune and have maxDepth at the same time. Exiting...")
+
+    # Maintain a reference to all the examples
     examples = dataset.examples
 
     # Part 2 (a)
-    testPerformanceSum = 0.
-    trainPerformanceSum = 0.
+    if not pruneFlag and (maxDepth==-1) and (boostRounds==-1):
+      testPerformanceSum = 0.
+      trainPerformanceSum = 0.
 
-    # 10-fold cross validation
-    for i in xrange(0, 100, 10):
-      # Load the correct subset of examples
-      dataset.examples = examples[i:i+90]
-      dt = learn(dataset)
+      # 10-fold cross validation
+      for i in xrange(0, 100, 10):
+        # Load the correct subset of examples; train
+        dataset.examples = examples[i:i+90]
+        dt = learn(dataset)
 
-      # Record performance
-      trainPerformanceSum += accuracy(dt, examples[i:i+90])
-      testPerformanceSum += accuracy(dt, examples[i+90:i+100])
+        # Record performance
+        trainPerformanceSum += accuracy(dt, examples[i:i+90])
+        testPerformanceSum += accuracy(dt, examples[i+90:i+100])
 
-    print 'Average cross-validated training performance: %s' % \
-      str(trainPerformanceSum / 10)
-    print 'Average cross-validated test performance: %s' % \
-      str(testPerformanceSum / 10)
+      print 'Average cross-validated training performance: %s' % \
+        str(trainPerformanceSum / 10)
+      print 'Average cross-validated test performance: %s' % \
+        str(testPerformanceSum / 10)
 
     # Part 2 (b)
-    if pruneFlag:
+    elif pruneFlag:
       test_results = []
       train_results = []
 
