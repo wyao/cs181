@@ -137,6 +137,9 @@ def calc_error(dt, examples):
     return error/size # nomalize to distribution
 
 def alpha(error):
+  if error==0:
+    return 100.
+  else:
     return 0.5 * math.log((1.-error)/error)
 
 def normalize_weights(examples):
@@ -307,10 +310,14 @@ def main():
 
       plt.plot(xs, train_results, '-b')
       plt.plot(xs, test_results, '-r')
-      plt.ylabel('y')
-      plt.xlabel('x')
-      plt.title('Train Results')
+      plt.ylabel('Performance')
+      plt.xlabel('Validation Set Size')
+      if noisyFlag:
+        plt.title('Noisy Data Pruning Results')
+      else:
+        plt.title('Non-Noisy Pruning Results')
       plt.legend(["training", "test"], 'best')
+      plt.axis([0,80,.7,1.05])
       plt.show()
 
     # Part 3
@@ -353,7 +360,12 @@ def main():
       plt.plot(xs, train_results, '-b')
       plt.ylabel('Performance')
       plt.xlabel('Number of Boosting Rounds')
-      plt.title('AdaBoosting Test performance')
+      if noisyFlag:
+        plt.title('AdaBoost Noisy Depth 1 Results')
+      else:
+        plt.title('AdaBoost Non-Noisy Depth 1 Results')
+      plt.legend(["training", "test"], 'best')
+      plt.axis([0,30,.75,1])
       plt.show()
 
 main()
