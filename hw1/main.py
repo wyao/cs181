@@ -364,7 +364,7 @@ def main():
         plt.title('AdaBoost Noisy Depth 1 Results')
       else:
         plt.title('AdaBoost Non-Noisy Depth 1 Results')
-      plt.legend(["training", "test"], 'best')
+      plt.legend(["test", "training"], 'best')
       plt.axis([0,30,.75,1])
       plt.show()
 
