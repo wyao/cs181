@@ -1,6 +1,7 @@
 from neural_net import NeuralNetwork, NetworkFramework
 from neural_net import Node, Target, Input
 import random
+import math
 
 
 # <--- Problem 3, Question 1 --->
@@ -36,13 +37,41 @@ def FeedForward(network, input):
   In particular, you should initialize the input nodes using these input
   values:
 
-  network.inputs[i].raw_value = input[i]
+  network.inputs[i].raw_value = input[i] # This is wrong
   """
   network.CheckComplete()
+
+  # Propagation helper
+  def propagate(nodes):
+    forward_neighbors = set()
+    for n in nodes:
+      for (w, neighbor) in zip(n.forward_weights, \
+                                n.forward_neighbors):
+        neighbor.raw_value += w * n.transformed_value
+        forward_neighbors.add(neighbor)
+    return forward_neighbors
+
+  # Sigmoid function
+  def g(z):
+    return 1. / (1 + math.exp(-z))
+
+  # Apply activation function
+  def activate(nodes):
+    for n in nodes:
+      #n.transformed_value = 1 if n.raw_value - n.fixed_weight > 0 else -1
+      n.transformed_value = g(n.raw_value - n.fixed_weight)
+
   # 1) Assign input values to input nodes
+  for i in xrange(len(input.values)):
+    network.inputs[i].raw_value = input.values[i]
+    network.inputs[i].transformed_value = input.values[i]
+
   # 2) Propagates to hidden layer
   # 3) Propagates to the output layer
-  pass
+  nodes = set(network.inputs)
+  while nodes:
+    nodes = propagate(nodes)
+    activate(nodes)
 
 #< --- Problem 3, Question 2
 
@@ -87,10 +116,40 @@ def Backprop(network, input, target, learning_rate):
   
   """
   network.CheckComplete()
+
   # 1) We first propagate the input through the network
+  FeedForward(network, input)
+
   # 2) Then we compute the errors and update the weigths starting with the last layer
   # 3) We now propagate the errors to the hidden layer, and update the weights there too
-  pass
+  deltas = {}
+  errors = {}
+
+  # Initialize hidden layer errors
+  for hid_node in network.hidden_nodes:
+    errors[hid_node] = 0.
+
+  # Calculate output errors
+  for (y,out_node) in zip(target.values, network.outputs):
+    errors[out_node] = y - out_node.transformed_value
+
+  # Backpropagate
+  nodes = set(network.outputs)
+  while nodes:
+    back_nodes = set()
+    for node in nodes:
+      # Calculate delta
+      deltas[node] = errors[node] * node.transformed_value * (1. - node.transformed_value)
+      # Note: node.inputs will be empty if node is an input node
+      for i in xrange(len(node.inputs)):
+        # Backpropagate error
+        errors[node.inputs[i]] += node.weights[i].value * deltas[node]
+
+        # Update weights
+        node.weights[i].value += node.transformed_value * learning_rate * deltas[node]
+
+        back_nodes.add(node.inputs[i])
+    nodes = back_nodes
 
 # <--- Problem 3, Question 3 --->
 
