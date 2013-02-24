@@ -3,6 +3,9 @@ from neural_net import Node, Target, Input
 import random
 import math
 
+INPUT = 1
+HIDDEN = 2
+OUTPUT = 3
 
 # <--- Problem 3, Question 1 --->
 
@@ -47,19 +50,14 @@ def FeedForward(network, input):
     for n in nodes:
       for (w, neighbor) in zip(n.forward_weights, \
                                 n.forward_neighbors):
-        neighbor.raw_value += w * n.transformed_value
+        neighbor.raw_value += w.value * n.transformed_value
         forward_neighbors.add(neighbor)
     return forward_neighbors
-
-  # Sigmoid function
-  def g(z):
-    return 1. / (1 + math.exp(-z))
 
   # Apply activation function
   def activate(nodes):
     for n in nodes:
-      #n.transformed_value = 1 if n.raw_value - n.fixed_weight > 0 else -1
-      n.transformed_value = g(n.raw_value - n.fixed_weight)
+      n.transformed_value = network.Sigmoid(n.raw_value - n.fixed_weight.value)
 
   # 1) Assign input values to input nodes
   for i in xrange(len(input.values)):
@@ -130,21 +128,26 @@ def Backprop(network, input, target, learning_rate):
     errors[hid_node] = 0.
 
   # Calculate output errors
-  for (y,out_node) in zip(target.values, network.outputs):
+  for (y,out_node) in zip(target, network.outputs):
     errors[out_node] = y - out_node.transformed_value
 
   # Backpropagate
   nodes = set(network.outputs)
   while nodes:
     back_nodes = set()
+    checked = False # Only need to check for whether node.inputs in network.inputs once
     for node in nodes:
+      # No need to process network inputs
+      if node in network.inputs:
+        return
       # Calculate delta
       deltas[node] = errors[node] * node.transformed_value * (1. - node.transformed_value)
       # Note: node.inputs will be empty if node is an input node
       for i in xrange(len(node.inputs)):
-        # Backpropagate error
-        errors[node.inputs[i]] += node.weights[i].value * deltas[node]
-
+        # Backpropagate error if node.inputs not network.inputs
+        if checked or node.inputs[i] not in network.inputs:
+          checked = True
+          errors[node.inputs[i]] += node.weights[i].value * deltas[node]
         # Update weights
         node.weights[i].value += node.transformed_value * learning_rate * deltas[node]
 
@@ -173,9 +176,11 @@ def Train(network, inputs, targets, learning_rate, epochs):
   run the *Backprop* over the training set *epochs*-times
   """
   network.CheckComplete()
-  pass
-  
-
+  for _ in xrange(epochs):
+    print "epochs"
+    for i in xrange(len(inputs)):
+      print i
+      Backprop(network, inputs[i], targets[i], learning_rate)
 
 # <--- Problem 3, Question 4 --->
 
@@ -214,8 +219,7 @@ class EncodedNetworkFramework(NetworkFramework):
     Make sure that the elements of the encoding are floats.
     
     """
-    # Replace line below by content of function
-    raise NotImplementedError
+    return [1.0 if i == label else 0.0 for i in xrange(10)]
 
   def GetNetworkLabel(self):
     """
@@ -244,8 +248,8 @@ class EncodedNetworkFramework(NetworkFramework):
     # which is 3
     
     """
-    # Replace line below by content of function
-    raise NotImplementedError
+    outputs = self.network.outputs
+    return outputs.index(max(outputs))
 
   def Convert(self, image):
     """
@@ -268,8 +272,12 @@ class EncodedNetworkFramework(NetworkFramework):
     value should be 1).
     
     """
-    # Replace line below by content of function
-    raise NotImplementedError
+    values = []
+    for i in xrange(len(image.pixels)):
+      values += [v/256. for v in image.pixels[i]]
+    input = Input()
+    input.values = values
+    return input
 
   def InitializeWeights(self):
     """
@@ -291,10 +299,9 @@ class EncodedNetworkFramework(NetworkFramework):
     of self.network.
     
     """
-    # replace line below by content of function
-    pass
-
-
+    for node in self.network.inputs + self.network.hidden_nodes:
+      for i in xrange(len(node.forward_weights)):
+        node.forward_weights[i].value = random.uniform(-.01,.01)
 
 #<--- Problem 3, Question 6 --->
 
@@ -316,11 +323,19 @@ class SimpleNetwork(EncodedNetworkFramework):
     should be connected to every output node.
     """
     super(SimpleNetwork, self).__init__() # < Don't remove this line >
-    
-    # 1) Adds an input node for each pixel.    
-    # 2) Add an output node for each possible digit label.
-    pass
 
+    # 1) Adds an input node for each pixel.    
+    network = self.network
+    for _ in xrange(196): # 196 = 14*14
+      node = Node()
+      network.AddNode(node, INPUT)
+
+    # 2) Add an output node for each possible digit label.
+    for _ in xrange(10):
+      node = Node()
+      for input_node in network.inputs:
+        node.AddInput(input_node, None, network)
+      network.AddNode(node, OUTPUT)
 
 #<---- Problem 3, Question 7 --->
 
