@@ -2,6 +2,7 @@ from neural_net import NeuralNetwork, NetworkFramework
 from neural_net import Node, Target, Input
 import random
 import math
+import py.test
 
 INPUT = 1
 HIDDEN = 2
@@ -175,9 +176,7 @@ def Train(network, inputs, targets, learning_rate, epochs):
   """
   network.CheckComplete()
   for _ in xrange(epochs):
-    print "epochs"
     for i in xrange(len(inputs)):
-      print i
       Backprop(network, inputs[i], targets[i], learning_rate)
 
 # <--- Problem 3, Question 4 --->
