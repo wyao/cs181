@@ -159,8 +159,8 @@ def Train(network, inputs, targets, learning_rate, epochs):
   """
   network.CheckComplete()
   for _ in xrange(epochs):
-    for i in xrange(len(inputs)):
-      Backprop(network, inputs[i], targets[i], learning_rate)
+    for input,target in zip(inputs, targets):
+      Backprop(network, input, target, learning_rate)
 
 # <--- Problem 3, Question 4 --->
 
@@ -228,7 +228,7 @@ class EncodedNetworkFramework(NetworkFramework):
     # which is 3
     
     """
-    transformed_values = [n.transformed_value for n in self.network.outputs]
+    transformed_values = map(lambda n: n.transformed_value, self.network.outputs)
     return transformed_values.index(max(transformed_values))
 
   def Convert(self, image):
@@ -252,11 +252,8 @@ class EncodedNetworkFramework(NetworkFramework):
     value should be 1).
     
     """
-    values = []
-    for i in xrange(len(image.pixels)):
-      values += [v/256. for v in image.pixels[i]]
     input = Input()
-    input.values = values
+    input.values = [item/256. for sublist in image.pixels for item in sublist]
     return input
 
   def InitializeWeights(self):
@@ -279,9 +276,8 @@ class EncodedNetworkFramework(NetworkFramework):
     of self.network.
     
     """
-    for node in self.network.inputs + self.network.hidden_nodes:
-      for i in xrange(len(node.forward_weights)):
-        node.forward_weights[i].value = random.uniform(-.01,.01)
+    for weight in self.network.weights:
+      weight.value = random.uniform(-.01,.01)
 
 #<--- Problem 3, Question 6 --->
 
