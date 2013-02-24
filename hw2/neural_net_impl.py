@@ -45,32 +45,20 @@ def FeedForward(network, input):
   """
   network.CheckComplete()
 
-  # Propagation helper
+  # Propagation helper; takes hidden and output nodes
   def propagate(nodes):
-    forward_neighbors = set()
     for n in nodes:
-      for (w, neighbor) in zip(n.forward_weights, \
-                                n.forward_neighbors):
-        neighbor.raw_value += w.value * n.transformed_value
-        forward_neighbors.add(neighbor)
-    return forward_neighbors
+      # Compute raw value
+      n.raw_value = network.ComputeRawValue(n)
+      # Compute transformed value
+      n.transformed_value = network.Sigmoid(n.raw_value)
 
-  # Apply activation function
-  def activate(nodes):
-    for n in nodes:
-      n.transformed_value = network.Sigmoid(n.raw_value - n.fixed_weight.value)
-
-  # 1) Assign input values to input nodes
+  # Assign input values to input nodes
   for i in xrange(len(input.values)):
     network.inputs[i].raw_value = input.values[i]
     network.inputs[i].transformed_value = input.values[i]
 
-  # 2) Propagates to hidden layer
-  # 3) Propagates to the output layer
-  nodes = set(network.inputs)
-  while nodes:
-    nodes = propagate(nodes)
-    activate(nodes)
+  propagate(network.hidden_nodes + network.outputs)
 
 #< --- Problem 3, Question 2
 
@@ -116,42 +104,37 @@ def Backprop(network, input, target, learning_rate):
   """
   network.CheckComplete()
 
-  # 1) We first propagate the input through the network
+  # First propagate the input through the network
   FeedForward(network, input)
 
-  # 2) Then we compute the errors and update the weigths starting with the last layer
-  # 3) We now propagate the errors to the hidden layer, and update the weights there too
-
-  # Initialize hidden layer errors
-  for hid_node in network.hidden_nodes:
-    hid_node.error = 0.
-
-  # Calculate output errors
+  # Calculate output errors and deltas
   for (y,out_node) in zip(target, network.outputs):
     out_node.error = y - out_node.transformed_value
+    out_node.delta = out_node.error * out_node.transformed_value * \
+      (1. - out_node.transformed_value)
 
-  # Backpropagate
-  nodes = set(network.outputs)
-  while nodes:
-    back_nodes = set()
-    checked = False # Only need to check for whether node.inputs in network.inputs once
+  def back_prop(nodes, learning_rate):
+    """ Calculate the error, delta, and forward_weights of given node.
+        Takes hidden and input nodes.
+        Can be made even more efficient by splitting into 2 functions.
+    """
     for node in nodes:
-      # No need to process network inputs
-      if node in network.inputs:
-        return
-      # Calculate delta
-      node.delta = node.error * node.transformed_value * (1. - node.transformed_value)
-      # Note: node.inputs will be empty if node is an input node
-      for i in xrange(len(node.inputs)):
-        # Backpropagate error if node.inputs not network.inputs
-        if checked or node.inputs[i] not in network.inputs:
-          checked = True
-          node.inputs[i].error += node.weights[i].value * node.delta
-        # Update weights
-        node.weights[i].value += node.transformed_value * learning_rate * node.delta
+      # Backprop
+      for i in xrange(len(node.forward_neighbors)):
+        child, w = node.forward_neighbors[i], node.forward_weights[i]
+        # Compute error if not input node
+        node.error = 0.
+        if node.inputs:
+          node.error += w.value * child.delta
+        # Update forward_weights
+        node.forward_weights[i].value += \
+          learning_rate * node.transformed_value * child.delta
+      # Compute delta if not input node
+      if node.inputs:
+        node.delta = node.error * network.SigmoidPrime(node.transformed_value) #node.transformed_value * (1. - node.transformed_value)
 
-        back_nodes.add(node.inputs[i])
-    nodes = back_nodes
+  # Backpropagate; note the reverse topoligical order
+  back_prop(network.hidden_nodes[::-1] + network.inputs, learning_rate)
 
 # <--- Problem 3, Question 3 --->
 
