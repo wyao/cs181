@@ -245,8 +245,8 @@ class EncodedNetworkFramework(NetworkFramework):
     # which is 3
     
     """
-    outputs = self.network.outputs
-    return outputs.index(max(outputs))
+    transformed_values = [n.transformed_value for n in self.network.outputs]
+    return transformed_values.index(max(transformed_values))
 
   def Convert(self, image):
     """
