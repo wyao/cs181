@@ -120,16 +120,14 @@ def Backprop(network, input, target, learning_rate):
 
   # 2) Then we compute the errors and update the weigths starting with the last layer
   # 3) We now propagate the errors to the hidden layer, and update the weights there too
-  deltas = {}
-  errors = {}
 
   # Initialize hidden layer errors
   for hid_node in network.hidden_nodes:
-    errors[hid_node] = 0.
+    hid_node.error = 0.
 
   # Calculate output errors
   for (y,out_node) in zip(target, network.outputs):
-    errors[out_node] = y - out_node.transformed_value
+    out_node.error = y - out_node.transformed_value
 
   # Backpropagate
   nodes = set(network.outputs)
@@ -141,15 +139,15 @@ def Backprop(network, input, target, learning_rate):
       if node in network.inputs:
         return
       # Calculate delta
-      deltas[node] = errors[node] * node.transformed_value * (1. - node.transformed_value)
+      node.delta = node.error * node.transformed_value * (1. - node.transformed_value)
       # Note: node.inputs will be empty if node is an input node
       for i in xrange(len(node.inputs)):
         # Backpropagate error if node.inputs not network.inputs
         if checked or node.inputs[i] not in network.inputs:
           checked = True
-          errors[node.inputs[i]] += node.weights[i].value * deltas[node]
+          node.inputs[i].error += node.weights[i].value * node.delta
         # Update weights
-        node.weights[i].value += node.transformed_value * learning_rate * deltas[node]
+        node.weights[i].value += node.transformed_value * learning_rate * node.delta
 
         back_nodes.add(node.inputs[i])
     nodes = back_nodes
