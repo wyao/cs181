@@ -3,6 +3,7 @@ from neural_net import *
 from neural_net_impl import *
 import sys
 import random
+import pickle
 
 
 def parseArgs(args):
@@ -35,9 +36,11 @@ def main():
   epochs = int(args_map['-e'])
   rate = float(args_map['-r'])
   networkType = args_map['-t']
-
+  hidden = int(args_map['-h']) if '-h' in args_map else 15
 
   # Load in the training data.
+
+  tests = DataReader.GetImages('test-1k.txt', -1)
   images = DataReader.GetImages('training-9k.txt', -1)
   for image in images:
     assert len(image.pixels) == 14
@@ -54,7 +57,7 @@ def main():
   if networkType == 'simple':
     network = SimpleNetwork()
   if networkType == 'hidden':
-    network = HiddenNetwork()
+    network = HiddenNetwork(hidden)
   if networkType == 'custom':
     network = CustomNetwork()
 
@@ -75,7 +78,10 @@ def main():
           len(network.network.outputs)))
   print '* * * * * * * * *'
   # Train the network.
-  network.Train(images, validation, rate, epochs)
+  log = network.Train(images, validation, tests, rate, epochs)
+  f = open(''.join(['log/']+['%s-%s_' % (k,v) for k,v in args_map.items()] + ['.log']), 'w')
+  pickle.dump(log, f)
+  f.close()
 
 if __name__ == "__main__":
   main()

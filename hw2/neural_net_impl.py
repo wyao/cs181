@@ -293,8 +293,7 @@ class SimpleNetwork(EncodedNetworkFramework):
     # 1) Adds an input node for each pixel.    
     network = self.network
     for _ in xrange(196): # 196 = 14*14
-      node = Node()
-      network.AddNode(node, INPUT)
+      network.AddNode(Node(), INPUT)
 
     # 2) Add an output node for each possible digit label.
     for _ in xrange(10):
@@ -330,8 +329,7 @@ class HiddenNetwork(EncodedNetworkFramework):
     # 1) Adds an input node for each pixel
     network = self.network
     for _ in xrange(196): # 196 = 14*14
-      node = Node()
-      network.AddNode(node, INPUT)
+      network.AddNode(Node(), INPUT)
 
     # 2) Adds the hidden layer
     for _ in xrange(number_of_hidden_nodes):
