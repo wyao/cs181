@@ -119,9 +119,12 @@ def Backprop(network, input, target, learning_rate):
   for node in nodes:
     node.error = 0.
     for child,w in zip(node.forward_neighbors, node.forward_weights):
-      node.error += w.value * child.delta
+      if node.inputs:
+        node.error += w.value * child.delta
       w.value += learning_rate * node.transformed_value * child.delta
-    node.delta = node.error * network.SigmoidPrime(node.raw_value)
+    if node.inputs:
+      node.delta = node.error * network.SigmoidPrime(node.raw_value)
+      node.fixed_weight.value += learning_rate * node.delta
 
 
 # <--- Problem 3, Question 3 --->
