@@ -108,33 +108,21 @@ def Backprop(network, input, target, learning_rate):
   FeedForward(network, input)
 
   # Calculate output errors and deltas
-  for (y,out_node) in zip(target, network.outputs):
+  for (y,out_node) in zip(target.values, network.outputs):
     out_node.error = y - out_node.transformed_value
-    out_node.delta = out_node.error * out_node.transformed_value * \
-      (1. - out_node.transformed_value)
+    out_node.delta = out_node.error * network.SigmoidPrime(out_node.raw_value)
 
-  def back_prop(nodes, learning_rate):
-    """ Calculate the error, delta, and forward_weights of given node.
-        Takes hidden and input nodes.
-        Can be made even more efficient by splitting into 2 functions.
-    """
-    for node in nodes:
-      # Backprop
-      for i in xrange(len(node.forward_neighbors)):
-        child, w = node.forward_neighbors[i], node.forward_weights[i]
-        # Compute error if not input node
-        node.error = 0.
-        if node.inputs:
-          node.error += w.value * child.delta
-        # Update forward_weights
-        node.forward_weights[i].value += \
-          learning_rate * node.transformed_value * child.delta
-      # Compute delta if not input node
-      if node.inputs:
-        node.delta = node.error * network.SigmoidPrime(node.transformed_value) #node.transformed_value * (1. - node.transformed_value)
+  # Backpropagate in reverse topoligical order
+  nodes = network.inputs + network.hidden_nodes
+  nodes.reverse()
 
-  # Backpropagate; note the reverse topoligical order
-  back_prop(network.hidden_nodes[::-1] + network.inputs, learning_rate)
+  for node in nodes:
+    node.error = 0.
+    for child,w in zip(node.forward_neighbors, node.forward_weights):
+      node.error += w.value * child.delta
+      w.value += learning_rate * node.transformed_value * child.delta
+    node.delta = node.error * network.SigmoidPrime(node.raw_value)
+
 
 # <--- Problem 3, Question 3 --->
 
@@ -199,7 +187,9 @@ class EncodedNetworkFramework(NetworkFramework):
     Make sure that the elements of the encoding are floats.
     
     """
-    return [1.0 if i == label else 0.0 for i in xrange(10)]
+    target = Target()
+    target.values = [1.0 if i == label else 0.0 for i in xrange(10)]
+    return target
 
   def GetNetworkLabel(self):
     """
@@ -344,7 +334,7 @@ class HiddenNetwork(EncodedNetworkFramework):
       network.AddNode(node, INPUT)
 
     # 2) Adds the hidden layer
-    for _ in xrange(30):
+    for _ in xrange(number_of_hidden_nodes):
       node = Node()
       for input_node in network.inputs:
         node.AddInput(input_node, None, network)
