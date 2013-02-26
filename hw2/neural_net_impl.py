@@ -351,7 +351,7 @@ class HiddenNetwork(EncodedNetworkFramework):
 #<--- Problem 3, Question 8 ---> 
 
 class CustomNetwork(EncodedNetworkFramework):
-  def __init__(self):
+  def __init__(self, hidden_num=15, prob=0.8):
     """
     Arguments:
     ---------
@@ -366,4 +366,20 @@ class CustomNetwork(EncodedNetworkFramework):
     Surprise me!
     """
     super(CustomNetwork, self).__init__() # <Don't remove this line>
-    pass
+
+    network = self.network
+    for _ in xrange(196): # 196 = 14*14
+      network.AddNode(Node(), INPUT)
+
+    for _ in xrange(hidden_num):
+      node = Node()
+      for input_node in network.inputs:
+        if random.random() < prob:
+          node.AddInput(input_node, None, network)
+      network.AddNode(node, HIDDEN)
+
+    for _ in xrange(10):
+      node = Node()
+      for hidden_node in network.hidden_nodes:
+        node.AddInput(hidden_node, None, network)
+      network.AddNode(node, OUTPUT)

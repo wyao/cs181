@@ -37,11 +37,15 @@ def main():
   rate = float(args_map['-r'])
   networkType = args_map['-t']
   hidden = int(args_map['-h']) if '-h' in args_map else 15
+  prob = float(args_map['-p']) if '-p' in args_map else 0.8
 
   # Load in the training data.
 
   tests = DataReader.GetImages('test-1k.txt', -1)
-  images = DataReader.GetImages('training-9k.txt', -1)
+  if '-d' not in args_map:
+    images = DataReader.GetImages('training-9k.txt', -1)
+  else:
+    images = DataReader.GetImages('test-1k.txt', -1)
   for image in images:
     assert len(image.pixels) == 14
     assert len(image.pixels[0]) == 14
@@ -59,7 +63,7 @@ def main():
   if networkType == 'hidden':
     network = HiddenNetwork(hidden)
   if networkType == 'custom':
-    network = CustomNetwork()
+    network = CustomNetwork(hidden, prob)
 
   # Hooks user-implemented functions to network
   network.FeedForwardFn = FeedForward
