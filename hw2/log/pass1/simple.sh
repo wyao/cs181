@@ -1,0 +1,10 @@
+python neural_net_main.py -e 100 -r 2.0 -t simple
+python neural_net_main.py -e 100 -r 1.5 -t simple
+python neural_net_main.py -e 100 -r 1.0 -t simple
+python neural_net_main.py -e 100 -r 0.75 -t simple
+python neural_net_main.py -e 100 -r 0.5 -t simple
+python neural_net_main.py -e 100 -r 0.25 -t simple
+python neural_net_main.py -e 100 -r 0.1 -t simple
+python neural_net_main.py -e 100 -r 0.05 -t simple
+python neural_net_main.py -e 100 -r 0.01 -t simple
+python neural_net_main.py -e 100 -r 0.001 -t simple
