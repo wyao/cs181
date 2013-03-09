@@ -6,6 +6,7 @@ import sys
 import random
 from utils import *
 import operator
+from optparse import OptionParser
 import py.test
 
 DATAFILE = "adults.txt"
@@ -54,27 +55,37 @@ def printOutput(data, numExamples):
 
 def main():
     # Validate the inputs
-    if(validateInput() == False):
-        print "Usage: clust numClusters numExamples"
-        sys.exit(1);
+    # if(validateInput() == False):
+    #     print "Usage: clust numClusters numExamples [-k]"
+    #     sys.exit(1);
 
-    numClusters = int(sys.argv[1]) #K
-    numExamples = int(sys.argv[2]) #n
+    parser = OptionParser()
+    parser.add_option('-k', action='store_true',
+        dest='k_means', default=False)
+    parser.add_option('--min', action='store_true', default=False)
+    parser.add_option('--max', action='store_true', default=False)
+    parser.add_option('--mean', action='store_true', default=False)
+    parser.add_option('--cent', action='store_true', default=False)
+
+    (opt, args) = parser.parse_args()
+
+    numClusters = int(args[0]) #K
+    numExamples = int(args[1]) #n
 
     #Initialize the random seed
-    
     random.seed()
 
     #Initialize the data
-
-    
-    dataset = file(DATAFILE, "r")
+    dataset = None
+    if opt.k_means:
+        dataset = file(DATAFILE, "r")
+    elif opt.max or opt.min or opt.mean or opt.cent:
+        dataset = file('adults-small.txt', 'r')
     if dataset == None:
         print "Unable to open data file"
-
+        exit(1)
 
     data = parseInput(dataset)
-    
     
     dataset.close()
     #printOutput(data,numExamples)
@@ -84,59 +95,88 @@ def main():
     # ==================== #
     # WRITE YOUR CODE HERE #
     # ==================== #
-    #py.test.set_trace()
+
     # K-means
-    dimension = len(data[0])
-    chosen = set()
-    prototypes = []
-    assignments = [] # Aka responsibility vectors
+    if opt.k_means:
+        dimension = len(data[0])
+        chosen = set()
+        prototypes = []
+        assignments = [] # Aka responsibility vectors
 
-    # Initialize prototype vectors
-    for _ in xrange(numClusters):
-        r = None
-        while True:
-            r = random.randint(0, numExamples-1)
-            if r not in chosen:
-                chosen.add(r)
-                break
-        prototypes.append(list(data[r]))
+        # Initialize prototype vectors
+        for _ in xrange(numClusters):
+            r = None
+            while True:
+                r = random.randint(0, numExamples-1)
+                if r not in chosen:
+                    chosen.add(r)
+                    break
+            prototypes.append(list(data[r]))
 
-    # Repeatedly update responsibility and prototype vectors
-    converged = False
-    iteration = 1
-    while not converged:
-        print iteration
-        # Update responsibility vectors
-        newAssignments = []
-        for n in xrange(numExamples):
-            bestProto = None
-            minDistance = float('inf')
+        # Repeatedly update responsibility and prototype vectors
+        converged = False
+        iteration = 1
+        while not converged:
+            print iteration
+            # Update responsibility vectors
+            newAssignments = []
+            for n in xrange(numExamples):
+                bestProto = None
+                minDistance = float('inf')
+                for k in xrange(numClusters):
+                    d = squareDistance(data[n], prototypes[k])
+                    if d < minDistance:
+                        bestProto = k
+                        minDistance = d
+                newAssignments.append(bestProto)
+            converged = (newAssignments == assignments)
+            assignments = newAssignments
+
+            # Update prototype vectors
             for k in xrange(numClusters):
-                d = squareDistance(data[n], prototypes[k])
-                if d < minDistance:
-                    bestProto = k
-                    minDistance = d
-            newAssignments.append(bestProto)
-        if newAssignments == assignments:
-            converged = True
-        assignments = newAssignments
+                prototypes[k] = [0.]*dimension
+            counts = [0]*numClusters
+            for n in xrange(numExamples):
+                k = assignments[n]
+                counts[k] += 1
+                prototypes[k] = map(operator.add, prototypes[k], data[n])
+            for k in xrange(numClusters):
+                prototypes[k] = map(lambda x: x/counts[k], prototypes[k])
 
-        # Update prototype vectors
-        for k in xrange(numClusters):
-            prototypes[k] = [0.]*dimension
-        counts = [0]*numClusters
-        for n in xrange(numExamples):
-            k = assignments[n]
-            counts[k] += 1
-            prototypes[k] = map(operator.add, prototypes[k], data[n])
-        for k in xrange(numClusters):
-            prototypes[k] = map(lambda x: x/counts[k], prototypes[k])
+            iteration += 1
+            err = 0.
+            for n in xrange(numExamples):
+                err += squareDistance(data[n], prototypes[assignments[n]])
+            print err
 
-        iteration += 1
-        err = 0.
-        for n in xrange(numExamples):
-            err += squareDistance(data[n], prototypes[assignments[n]])
-        print err
+    # HAC
+    elif opt.max or opt.min or opt.mean or opt.cent:
+        clusters = [[list(p)] for p in data[:numExamples]]
+
+        while len(clusters) > numClusters:
+            shortest, a, b = float('inf'), None, None
+            for i in xrange(len(clusters)-1):
+                for j in xrange(i+1, len(clusters)):
+                    # Find distance
+                    dist = None
+                    if opt.min:
+                        dist = cmin(clusters[i], clusters[j], squareDistance)
+                    elif opt.max:
+                        dist = cmax(clusters[i], clusters[j], squareDistance)
+                    elif opt.mean:
+                        dist = cmean(clusters[i], clusters[j], squareDistance)
+                    else:
+                        dist = ccent(clusters[i], clusters[j], squareDistance)
+                    # Update shortest distance
+                    if dist < shortest:
+                        shortest = dist
+                        a = i
+                        b = j
+            # Merge clusters
+            clusters[a] = clusters[a] + clusters[b]
+            clusters.pop(b)
+        print map(lambda x: len(x), clusters)
+
 
 if __name__ == "__main__":
     validateInput()
