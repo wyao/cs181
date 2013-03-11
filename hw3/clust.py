@@ -66,6 +66,7 @@ def main():
     parser.add_option('--max', action='store_true', default=False)
     parser.add_option('--mean', action='store_true', default=False)
     parser.add_option('--cent', action='store_true', default=False)
+    parser.add_option('--auto', action='store_true', default=False)
 
     (opt, args) = parser.parse_args()
 
@@ -77,7 +78,7 @@ def main():
 
     #Initialize the data
     dataset = None
-    if opt.k_means:
+    if opt.k_means or opt.auto:
         dataset = file(DATAFILE, "r")
     elif opt.max or opt.min or opt.mean or opt.cent:
         dataset = file('adults-small.txt', 'r')
@@ -96,9 +97,10 @@ def main():
     # WRITE YOUR CODE HERE #
     # ==================== #
 
+    dimensions = len(data[0])
+
     # K-means
     if opt.k_means:
-        dimension = len(data[0])
         chosen = set()
         prototypes = []
         assignments = [] # Aka responsibility vectors
@@ -134,7 +136,7 @@ def main():
 
             # Update prototype vectors
             for k in xrange(numClusters):
-                prototypes[k] = [0.]*dimension
+                prototypes[k] = [0.]*dimensions
             counts = [0]*numClusters
             for n in xrange(numExamples):
                 k = assignments[n]
@@ -177,6 +179,66 @@ def main():
             clusters.pop(b)
         print map(lambda x: len(x), clusters)
 
+    # Autoclass
+    elif opt.auto:
+        # Set up discretization info
+        assert(dimensions == len(attributes))
+        for i in xrange(dimensions):
+            if attributes[i]['isContinuous']:
+                values = [d[i] for d in data]
+                attributes[i]['min'] = min(values)
+                attributes[i]['max'] = max(values)
+                attributes[i]['intervals'] = 5
+            else:
+                attributes[i]['intervals'] = 2
+
+        E = {}
+        P = {}
+
+        # Set initial parameters
+        totalJ = sum([attr['intervals'] for attr in attributes])
+        for k in xrange(numClusters):
+            P[k] = random.random()
+            for d in xrange(dimensions):
+                for j in xrange(totalJ):
+                    P[(k,d,j)] = random.random()
+
+        converged = False
+        while not converged:
+            # Calculate expected values step
+            # Set all expected values to 0
+            for k in xrange(numClusters):
+                E[k] = 0.
+                for d in xrange(dimensions):
+                    for j in xrange(totalJ):
+                        P[(k,d,j)] = 0.
+
+            # Use each piece of data to update expected values
+            for x in data[:numExamples]:
+                prob = [None]*numClusters
+                for k in xrange(numClusters):
+                    prob[k] = P[k]
+                # Calculate probabilities
+                for d in xrange(dimensions):
+                    j = assignClass(x,d,attributes[d])
+                    for k in xrange(numClusters):
+                        prob[k] *= P[(k,d,j)]
+
+                # Sum up expected values
+                totalProb = sum(prob)
+                print prob
+                for k in xrange(numClusters):
+                    E[k] += prob[k] / totalProb
+                    for d in xrange(dimensions):
+                        j = assignClass(x,d,attributes[d])
+                        E[(k,d,j)] += prob[k] / totalProb
+
+            # Maximization step
+            for k in xrange(numClusters):
+                P[k] = E[k]/numExamples
+                for d in xrange(dimensions):
+                    for j in xrange(attributes[d].intervals):
+                        P[(k,d,j)] = E[(k,d,j)] / E[k]
 
 if __name__ == "__main__":
     validateInput()

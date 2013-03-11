@@ -80,7 +80,62 @@ def ccent(c1, c2, d):
 
     return d(nx, ny)
 
+attributes = [
+    {'attribute':"age: continuous.", 'isContinuous':True, 'min':None, 'max':None, 'intervals':None},
+    {'attribute':"workclass-Private", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
+    {'attribute':"workclass-Self-emp-not-inc", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
+    {'attribute':"workclass-Self-emp-inc", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
+    {'attribute':"workclass-Federal-gov", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
+    {'attribute':"workclass-Local-gov", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
+    {'attribute':"workclass-State-gov", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
+    {'attribute':"workclass-Without-pay", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
+    {'attribute':"workclass-Never-worked.", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
+    {'attribute':"fnlwgt: continuous.", 'isContinuous':True, 'min':None, 'max':None, 'intervals':None},
+    {'attribute':"education-num: continuous.", 'isContinuous':True, 'min':None, 'max':None, 'intervals':None},
+    {'attribute':"marital-status-Married-civ-spouse", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
+    {'attribute':"marital-status-Divorced", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
+    {'attribute':"marital-status-Never-married", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
+    {'attribute':"marital-status-Separated", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
+    {'attribute':"marital-status-Widowed", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
+    {'attribute':"marital-status-Married-spouse-absent", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
+    {'attribute':"marital-status-Married-AF-spouse.", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
+    {'attribute':"occupation-Tech-support", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
+    {'attribute':"occupation-Craft-repair", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
+    {'attribute':"occupation-Other-service", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
+    {'attribute':"occupation-Sales", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
+    {'attribute':"occupation-Exec-managerial", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
+    {'attribute':"occupation-Prof-specialty", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
+    {'attribute':"occupation-Handlers-cleaners", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
+    {'attribute':"occupation-Machine-op-inspct", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
+    {'attribute':"occupation-Adm-clerical", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
+    {'attribute':"occupation-Farming-fishing", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
+    {'attribute':"occupation-Transport-moving", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
+    {'attribute':"occupation-Priv-house-serv", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
+    {'attribute':"occupation-Protective-serv", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
+    {'attribute':"occupation-Armed-Forces.", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
+    {'attribute':"relationship-Wife", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
+    {'attribute':"relationship-Own-child", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
+    {'attribute':"relationship-Husband", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
+    {'attribute':"relationship-Not-in-family", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
+    {'attribute':"relationship-Other-relative", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
+    {'attribute':"relationship-Unmarried.", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
+    {'attribute':"race-White", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
+    {'attribute':"race-Asian-Pac-Islander", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
+    {'attribute':"race-Amer-Indian-Eskimo", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
+    {'attribute':"race-Other", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
+    {'attribute':"race-Black.", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
+    {'attribute':"sex: 0 = Female, 1 = Male.", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
+    {'attribute':"capital-gain: continuous.", 'isContinuous':True, 'min':None, 'max':None, 'intervals':None},
+    {'attribute':"capital-loss: continuous.", 'isContinuous':True, 'min':None, 'max':None, 'intervals':None},
+    {'attribute':"hours-per-week: continuous.", 'isContinuous':True, 'min':None, 'max':None, 'intervals':None},
+    {'attribute':"income: 0 = >50K, 1 = <=50K.", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None}
+]
 
-    
-        
-        
+import math
+
+def assignClass(x,d,attr):
+    if attr['isContinuous']:
+        denominator = (attr['max'] - attr['min']) / attr['intervals']
+        return math.floor( (x[d] - attr['min']) / denominator )
+    else:
+        return 1 if x[d] > 0 else 0
