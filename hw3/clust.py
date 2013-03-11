@@ -150,6 +150,7 @@ def main():
             for n in xrange(numExamples):
                 err += squareDistance(data[n], prototypes[assignments[n]])
             print err
+        print counts
 
     # HAC
     elif opt.max or opt.min or opt.mean or opt.cent:
@@ -205,13 +206,14 @@ def main():
 
         converged = False
         while not converged:
+            print [P[k] for k in xrange(numClusters)]
             # Calculate expected values step
             # Set all expected values to 0
             for k in xrange(numClusters):
                 E[k] = 0.
                 for d in xrange(dimensions):
                     for j in xrange(totalJ):
-                        P[(k,d,j)] = 0.
+                        E[(k,d,j)] = 0.
 
             # Use each piece of data to update expected values
             for x in data[:numExamples]:
@@ -226,7 +228,6 @@ def main():
 
                 # Sum up expected values
                 totalProb = sum(prob)
-                print prob
                 for k in xrange(numClusters):
                     E[k] += prob[k] / totalProb
                     for d in xrange(dimensions):
@@ -237,7 +238,7 @@ def main():
             for k in xrange(numClusters):
                 P[k] = E[k]/numExamples
                 for d in xrange(dimensions):
-                    for j in xrange(attributes[d].intervals):
+                    for j in xrange(attributes[d]['intervals']):
                         P[(k,d,j)] = E[(k,d,j)] / E[k]
 
 if __name__ == "__main__":

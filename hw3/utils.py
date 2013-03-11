@@ -136,6 +136,6 @@ import math
 def assignClass(x,d,attr):
     if attr['isContinuous']:
         denominator = (attr['max'] - attr['min']) / attr['intervals']
-        return math.floor( (x[d] - attr['min']) / denominator )
+        return int(math.floor( (x[d] - attr['min']) / denominator ))
     else:
         return 1 if x[d] > 0 else 0
