@@ -1,4 +1,5 @@
 import itertools
+import math
 
 def argmin(seq, fn):
     """Return an element with lowest fn(seq[i]) score; tie goes to first one.
@@ -81,61 +82,56 @@ def ccent(c1, c2, d):
     return d(nx, ny)
 
 attributes = [
-    {'attribute':"age: continuous.", 'isContinuous':True, 'min':None, 'max':None, 'intervals':None},
-    {'attribute':"workclass-Private", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
-    {'attribute':"workclass-Self-emp-not-inc", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
-    {'attribute':"workclass-Self-emp-inc", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
-    {'attribute':"workclass-Federal-gov", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
-    {'attribute':"workclass-Local-gov", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
-    {'attribute':"workclass-State-gov", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
-    {'attribute':"workclass-Without-pay", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
-    {'attribute':"workclass-Never-worked.", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
-    {'attribute':"fnlwgt: continuous.", 'isContinuous':True, 'min':None, 'max':None, 'intervals':None},
-    {'attribute':"education-num: continuous.", 'isContinuous':True, 'min':None, 'max':None, 'intervals':None},
-    {'attribute':"marital-status-Married-civ-spouse", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
-    {'attribute':"marital-status-Divorced", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
-    {'attribute':"marital-status-Never-married", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
-    {'attribute':"marital-status-Separated", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
-    {'attribute':"marital-status-Widowed", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
-    {'attribute':"marital-status-Married-spouse-absent", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
-    {'attribute':"marital-status-Married-AF-spouse.", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
-    {'attribute':"occupation-Tech-support", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
-    {'attribute':"occupation-Craft-repair", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
-    {'attribute':"occupation-Other-service", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
-    {'attribute':"occupation-Sales", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
-    {'attribute':"occupation-Exec-managerial", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
-    {'attribute':"occupation-Prof-specialty", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
-    {'attribute':"occupation-Handlers-cleaners", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
-    {'attribute':"occupation-Machine-op-inspct", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
-    {'attribute':"occupation-Adm-clerical", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
-    {'attribute':"occupation-Farming-fishing", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
-    {'attribute':"occupation-Transport-moving", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
-    {'attribute':"occupation-Priv-house-serv", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
-    {'attribute':"occupation-Protective-serv", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
-    {'attribute':"occupation-Armed-Forces.", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
-    {'attribute':"relationship-Wife", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
-    {'attribute':"relationship-Own-child", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
-    {'attribute':"relationship-Husband", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
-    {'attribute':"relationship-Not-in-family", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
-    {'attribute':"relationship-Other-relative", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
-    {'attribute':"relationship-Unmarried.", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
-    {'attribute':"race-White", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
-    {'attribute':"race-Asian-Pac-Islander", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
-    {'attribute':"race-Amer-Indian-Eskimo", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
-    {'attribute':"race-Other", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
-    {'attribute':"race-Black.", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
-    {'attribute':"sex: 0 = Female, 1 = Male.", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None},
-    {'attribute':"capital-gain: continuous.", 'isContinuous':True, 'min':None, 'max':None, 'intervals':None},
-    {'attribute':"capital-loss: continuous.", 'isContinuous':True, 'min':None, 'max':None, 'intervals':None},
-    {'attribute':"hours-per-week: continuous.", 'isContinuous':True, 'min':None, 'max':None, 'intervals':None},
-    {'attribute':"income: 0 = >50K, 1 = <=50K.", 'isContinuous':False, 'min':None, 'max':None, 'intervals':None}
+    {'attribute':"age: continuous.", 'isContinuous':True},
+    {'attribute':"workclass-Private", 'isContinuous':False},
+    {'attribute':"workclass-Self-emp-not-inc", 'isContinuous':False},
+    {'attribute':"workclass-Self-emp-inc", 'isContinuous':False},
+    {'attribute':"workclass-Federal-gov", 'isContinuous':False},
+    {'attribute':"workclass-Local-gov", 'isContinuous':False},
+    {'attribute':"workclass-State-gov", 'isContinuous':False},
+    {'attribute':"workclass-Without-pay", 'isContinuous':False},
+    {'attribute':"workclass-Never-worked.", 'isContinuous':False},
+    {'attribute':"fnlwgt: continuous.", 'isContinuous':True},
+    {'attribute':"education-num: continuous.", 'isContinuous':True},
+    {'attribute':"marital-status-Married-civ-spouse", 'isContinuous':False},
+    {'attribute':"marital-status-Divorced", 'isContinuous':False},
+    {'attribute':"marital-status-Never-married", 'isContinuous':False},
+    {'attribute':"marital-status-Separated", 'isContinuous':False},
+    {'attribute':"marital-status-Widowed", 'isContinuous':False},
+    {'attribute':"marital-status-Married-spouse-absent", 'isContinuous':False},
+    {'attribute':"marital-status-Married-AF-spouse.", 'isContinuous':False},
+    {'attribute':"occupation-Tech-support", 'isContinuous':False},
+    {'attribute':"occupation-Craft-repair", 'isContinuous':False},
+    {'attribute':"occupation-Other-service", 'isContinuous':False},
+    {'attribute':"occupation-Sales", 'isContinuous':False},
+    {'attribute':"occupation-Exec-managerial", 'isContinuous':False},
+    {'attribute':"occupation-Prof-specialty", 'isContinuous':False},
+    {'attribute':"occupation-Handlers-cleaners", 'isContinuous':False},
+    {'attribute':"occupation-Machine-op-inspct", 'isContinuous':False},
+    {'attribute':"occupation-Adm-clerical", 'isContinuous':False},
+    {'attribute':"occupation-Farming-fishing", 'isContinuous':False},
+    {'attribute':"occupation-Transport-moving", 'isContinuous':False},
+    {'attribute':"occupation-Priv-house-serv", 'isContinuous':False},
+    {'attribute':"occupation-Protective-serv", 'isContinuous':False},
+    {'attribute':"occupation-Armed-Forces.", 'isContinuous':False},
+    {'attribute':"relationship-Wife", 'isContinuous':False},
+    {'attribute':"relationship-Own-child", 'isContinuous':False},
+    {'attribute':"relationship-Husband", 'isContinuous':False},
+    {'attribute':"relationship-Not-in-family", 'isContinuous':False},
+    {'attribute':"relationship-Other-relative", 'isContinuous':False},
+    {'attribute':"relationship-Unmarried.", 'isContinuous':False},
+    {'attribute':"race-White", 'isContinuous':False},
+    {'attribute':"race-Asian-Pac-Islander", 'isContinuous':False},
+    {'attribute':"race-Amer-Indian-Eskimo", 'isContinuous':False},
+    {'attribute':"race-Other", 'isContinuous':False},
+    {'attribute':"race-Black.", 'isContinuous':False},
+    {'attribute':"sex: 0 = Female, 1 = Male.", 'isContinuous':False},
+    {'attribute':"capital-gain: continuous.", 'isContinuous':True},
+    {'attribute':"capital-loss: continuous.", 'isContinuous':True},
+    {'attribute':"hours-per-week: continuous.", 'isContinuous':True},
+    {'attribute':"income: 0 = >50K, 1 = <=50K.", 'isContinuous':False}
 ]
 
-import math
-
-def assignClass(x,d,attr):
-    if attr['isContinuous']:
-        denominator = (attr['max'] - attr['min']) / attr['intervals']
-        return int(math.floor( (x[d] - attr['min']) / denominator ))
-    else:
-        return 1 if x[d] > 0 else 0
+def getPDF(x, var, mean):
+    return (math.exp( -math.pow((x-mean),2) / (2*var) )) / \
+        math.sqrt(2*math.pi*var)

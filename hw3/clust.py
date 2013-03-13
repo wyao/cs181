@@ -7,6 +7,7 @@ import random
 from utils import *
 import operator
 from optparse import OptionParser
+import math
 import py.test
 
 DATAFILE = "adults.txt"
@@ -187,26 +188,24 @@ def main():
     elif opt.auto:
         # Set up discretization info
         assert(dimensions == len(attributes))
-        for i in xrange(dimensions):
-            if attributes[i]['isContinuous']:
-                values = [d[i] for d in data]
-                attributes[i]['min'] = min(values)
-                attributes[i]['max'] = max(values)
-                attributes[i]['intervals'] = 5
-            else:
-                attributes[i]['intervals'] = 2
 
-        E = {}
-        P = {}
+        E = {} # Expected values
+        P = {} # Parameters
+        mean = {}
+        var = {}
+        pdf = {} # Probabilities from using prob distr function
 
         # Set initial parameters
-        totalJ = sum([attr['intervals'] for attr in attributes])
         for k in xrange(numClusters):
             P[k] = random.random()
             for d in xrange(dimensions):
-                for j in xrange(totalJ):
-                    P[(k,d,j)] = random.random()
-
+                if attributes[d]['isContinuous']:
+                    mean[(k,d)] = float(data[0][d]) # Use first dataset to seed
+                    var[(k,d)] = float(data[0][d]) / 10. if data[0][d] \
+                        else 1.
+                else:
+                    P[(k,d)] = random.random()
+        # Run EM
         converged = False
         for _ in xrange(30):
             # Calculate expected values step
@@ -214,35 +213,53 @@ def main():
             for k in xrange(numClusters):
                 E[k] = 0.
                 for d in xrange(dimensions):
-                    for j in xrange(totalJ):
-                        E[(k,d,j)] = 0.
-
-            # Use each piece of data to update expected values
-            for x in data[:numExamples]:
-                prob = [None]*numClusters
-                for k in xrange(numClusters):
-                    prob[k] = P[k]
-                # Calculate probabilities
-                for d in xrange(dimensions):
-                    j = assignClass(x,d,attributes[d])
+                    E[(k,d)] = 0.
+            # For each input
+            for n,x in enumerate(data[:numExamples]):
+                # Per input temporary probabilities for each cluster
+                prob = []
+                for _ in xrange(numClusters):
+                    prob.append(float(P[k]))
+                # For each attribute calculate probabilities
+                for d,xi in enumerate(x):
                     for k in xrange(numClusters):
-                        prob[k] *= P[(k,d,j)]
-
+                        if attributes[d]['isContinuous']:
+                            pdf[(k,d,n)] = getPDF(float(xi), var[(k,d)], \
+                                mean[(k,d)])
+                            prob[k] *= pdf[(k,d,n)]
+                        else:
+                            if xi > 0:
+                                prob[k] *= P[(k,d)]
+                            else:
+                                prob[k] *= (1-P[(k,d)])
                 # Sum up expected values
                 totalProb = sum(prob)
                 for k in xrange(numClusters):
-                    E[k] += prob[k] / totalProb
+                    E[k] += prob[k]/totalProb
                     for d in xrange(dimensions):
-                        j = assignClass(x,d,attributes[d])
-                        E[(k,d,j)] += prob[k] / totalProb
-
+                        if x[d] > 0:
+                            E[(k,d)] += prob[k]/totalProb
             # Maximization step
             for k in xrange(numClusters):
+                # Update parameters for Bernoulli's
                 P[k] = E[k]/numExamples
                 for d in xrange(dimensions):
-                    for j in xrange(attributes[d]['intervals']):
-                        P[(k,d,j)] = E[(k,d,j)] / E[k]
-        print [P[k] for k in xrange(numClusters)]
+                    if not attributes[d]['isContinuous']:
+                        P[(k,d)] = E[(k,d)]/E[k]
+                    else:
+                        # Update parameters Gaussians
+                        denominator = 0.
+                        meanNumerator = 0.
+                        varNumerator = 0.
+                        for n in xrange(numExamples):
+                            denominator += pdf[(k,d,n)]
+                            meanNumerator += pdf[(k,d,n)] * data[n][d]
+                        mean[(k,d)] = meanNumerator/denominator
+                        for n in xrange(numExamples):
+                            varNumerator += pdf[(k,d,n)] * \
+                                math.pow(data[n][d] - mean[(k,d)],2)
+                        var[(k,d)] = varNumerator/denominator
+            print [P[k] for k in xrange(numClusters)]
 
 if __name__ == "__main__":
     validateInput()
