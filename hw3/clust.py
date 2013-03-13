@@ -67,6 +67,7 @@ def main():
     parser.add_option('--mean', action='store_true', default=False)
     parser.add_option('--cent', action='store_true', default=False)
     parser.add_option('--auto', action='store_true', default=False)
+    parser.add_option('--small', action='store_true', default=False)
 
     (opt, args) = parser.parse_args()
 
@@ -78,7 +79,9 @@ def main():
 
     #Initialize the data
     dataset = None
-    if opt.k_means or opt.auto:
+    if opt.small:
+        dataset = file('adults-small.txt', 'r')
+    elif opt.k_means or opt.auto:
         dataset = file(DATAFILE, "r")
     elif opt.max or opt.min or opt.mean or opt.cent:
         dataset = file('adults-small.txt', 'r')
@@ -205,8 +208,7 @@ def main():
                     P[(k,d,j)] = random.random()
 
         converged = False
-        while not converged:
-            print [P[k] for k in xrange(numClusters)]
+        for _ in xrange(30):
             # Calculate expected values step
             # Set all expected values to 0
             for k in xrange(numClusters):
@@ -240,6 +242,7 @@ def main():
                 for d in xrange(dimensions):
                     for j in xrange(attributes[d]['intervals']):
                         P[(k,d,j)] = E[(k,d,j)] / E[k]
+        print [P[k] for k in xrange(numClusters)]
 
 if __name__ == "__main__":
     validateInput()
