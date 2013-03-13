@@ -215,9 +215,8 @@ def main():
             P[k] = random.random()
             for d in xrange(dimensions):
                 if attributes[d]['isContinuous']:
-                    mean[(k,d)] = float(data[0][d]) # Use first dataset to seed
-                    var[(k,d)] = float(data[0][d]) / 10. if data[0][d] \
-                        else 1.
+                    mean[(k,d)] = random.random()
+                    var[(k,d)] = random.random()
                 else:
                     P[(k,d)] = random.random()
         # Run EM
@@ -248,12 +247,13 @@ def main():
                             else:
                                 prob[k] *= (1-P[(k,d)])
                 # Sum up expected values
-                totalProb = sum(prob)
+                totalProb = sum(prob) # 0 if every discrete xi is 0.0 TODO
                 for k in xrange(numClusters):
-                    E[k] += prob[k]/totalProb
-                    for d in xrange(dimensions):
-                        if x[d] > 0:
-                            E[(k,d)] += prob[k]/totalProb
+                    if totalProb: # If totalProb != 0.0
+                        E[k] += prob[k]/totalProb
+                        for d in xrange(dimensions):
+                            if x[d] > 0:
+                                E[(k,d)] += prob[k]/totalProb
             # Maximization step
             for k in xrange(numClusters):
                 # Update parameters for Bernoulli's
