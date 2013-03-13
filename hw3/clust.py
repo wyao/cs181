@@ -153,10 +153,15 @@ def main():
                 prototypes[k] = map(lambda x: x/counts[k], prototypes[k])
 
             iteration += 1
-            err = 0.
+
+            # Calculate means
+            numerator = [0.] * numClusters
+            denominator = [0] * numClusters
             for n in xrange(numExamples):
-                err += squareDistance(data[n], prototypes[assignments[n]])
-            print err
+                numerator[assignments[n]] += \
+                    squareDistance(data[n], prototypes[assignments[n]])
+                denominator[assignments[n]] += 1
+            print [n/d for n,d in zip(numerator, denominator)]
         print counts
 
     # HAC
