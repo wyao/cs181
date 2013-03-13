@@ -8,6 +8,9 @@ from utils import *
 import operator
 from optparse import OptionParser
 import math
+import numpy as np
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
 import py.test
 
 DATAFILE = "adults.txt"
@@ -182,7 +185,14 @@ def main():
             # Merge clusters
             clusters[a] = clusters[a] + clusters[b]
             clusters.pop(b)
-        print map(lambda x: len(x), clusters)
+
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        for c,color in zip(clusters, ['r','b','g','black']):
+            for i in xrange(len(c)):
+                ax.scatter(c[i][0],c[i][1], \
+                    c[i][2],c=color)
+        plt.show()
 
     # Autoclass
     elif opt.auto:
