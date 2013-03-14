@@ -5,12 +5,10 @@
 import sys
 import random
 from utils import *
+import utils
 import operator
 from optparse import OptionParser
 import math
-import numpy as np
-from mpl_toolkits.mplot3d import Axes3D
-import matplotlib.pyplot as plt
 import py.test
 
 DATAFILE = "adults.txt"
@@ -70,7 +68,8 @@ def main():
     parser.add_option('--max', action='store_true', default=False)
     parser.add_option('--mean', action='store_true', default=False)
     parser.add_option('--cent', action='store_true', default=False)
-    parser.add_option('--auto', action='store_true', default=False)
+    parser.add_option('--bern', action='store_true', default=False)
+    parser.add_option('--mix', action='store_true', default=False)
     parser.add_option('--small', action='store_true', default=False)
 
     (opt, args) = parser.parse_args()
@@ -83,9 +82,11 @@ def main():
 
     #Initialize the data
     dataset = None
+    attributes = utils.attributes
     if opt.small:
+        attributes = utils.attributes_small
         dataset = file('adults-small.txt', 'r')
-    elif opt.k_means or opt.auto:
+    elif opt.k_means or opt.bern or opt.mix:
         dataset = file(DATAFILE, "r")
     elif opt.max or opt.min or opt.mean or opt.cent:
         dataset = file('adults-small.txt', 'r')
@@ -199,8 +200,92 @@ def main():
                     c[i][2],c=color)
         plt.show()
 
-    # Autoclass
-    elif opt.auto:
+    # Autoclass with simple Bernoulli model for all features
+    elif opt.bern:
+        # Set up discretization info
+        assert(dimensions == len(attributes))
+
+        E = {} # Expected values
+        P = {} # Parameters
+        discrete = float(len([a for a in attributes if not a['isContinuous']]))
+
+        # Set initial parameters
+        for k in xrange(numClusters):
+            P[k] = random.random()
+            for d in xrange(dimensions):
+                P[(k,d)] = random.random()
+        # Run EM
+        converged = False
+        for _ in xrange(100):
+            # Calculate expected values step
+            # Set all expected values to 0
+            for k in xrange(numClusters):
+                E[k] = 0.
+                for d in xrange(dimensions):
+                    E[(k,d)] = 0.
+            # For each input
+            for n,x in enumerate(data[:numExamples]):
+                # Per input temporary probabilities for each cluster
+                prob = []
+                for _ in xrange(numClusters):
+                    prob.append(float(P[k]))
+                # For each attribute calculate probabilities
+                for d,xi in enumerate(x):
+                    # w_denominator = 0.
+                    for k in xrange(numClusters):
+                        if attributes[d]['isContinuous']:
+                            if xi > .5:
+                                prob[k] *= P[(k,d)]
+                            else:
+                                prob[k] *= (1-P[(k,d)])
+                        else:
+                            if xi > 0:
+                                prob[k] *= P[(k,d)]
+                            else:
+                                prob[k] *= (1-P[(k,d)])
+                # Sum up expected values
+                totalProb = sum(prob) # 0 if every discrete xi is 0.0 TODO
+                for k in xrange(numClusters):
+                    if totalProb: # If totalProb != 0.0
+                        E[k] += prob[k]/totalProb
+                        for d in xrange(dimensions):
+                            if not attributes[d]['isContinuous'] \
+                                and x[d] > 0:
+                                E[(k,d)] += prob[k]/totalProb
+                            elif attributes[d]['isContinuous'] and x[d] > .5:
+                                E[(k,d)] += prob[k]/totalProb
+            # Maximization step
+            for k in xrange(numClusters):
+                # Update parameters for Bernoulli's
+                P[k] = E[k]/numExamples
+                for d in xrange(dimensions):
+                    P[(k,d)] = E[(k,d)]/E[k]
+            print [P[k] for k in xrange(numClusters)]
+
+            likelihood = 0.
+            # Assign cluster
+            for x in data[:numExamples]:
+                pick = []
+                for k in xrange(numClusters):
+                    pick.append(P[k])
+                    for d in xrange(dimensions):
+                        if attributes[d]['isContinuous']:
+                            pick[k] *= P[(k,d)] if x[d] > .5 \
+                                else (1-P[(k,d)])
+                        else:
+                            pick[k] *= P[(k,d)] if x[d] > 0 \
+                                else (1-P[(k,d)])
+                k = pick.index(max(pick))
+                for d,xi in enumerate(x):
+                    if attributes[d]['isContinuous']:
+                        likelihood += math.log(P[(k,d)]) if xi > .5 \
+                            else math.log(1-P[(k,d)])
+                    else:
+                        likelihood += math.log(P[(k,d)]) if xi > 0 \
+                            else math.log(1-P[(k,d)])
+            print likelihood
+
+    elif opt.mix:
         # Set up discretization info
         assert(dimensions == len(attributes))
 
@@ -221,7 +306,6 @@ def main():
                 else:
                     P[(k,d)] = random.random()
         # Run EM
-        converged = False
         for _ in xrange(100):
             # Calculate expected values step
             # Set all expected values to 0
@@ -292,31 +376,8 @@ def main():
                             N += w[(k,d,n)]
                         P[k] += ( (N/numExamples) /dimensions)
             print [P[k] for k in xrange(numClusters)]
-        # Plot
-        color = ['r','b','g','black']
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection='3d')
-        # Assign
-        for x in data[:numExamples]:
-            pick = []
-            for k in xrange(numClusters):
-                pick.append(P[k])
-                for d in xrange(dimensions):
-                    if attributes[d]['isContinuous']:
-                        denominator = 0.
-                        for k_ in xrange(numClusters):
-                            denominator += P[k_] * \
-                                getPDF(float(x[d]), var[(k_,d)], mean[(k_,d)])
-                            pick[k] += (P[k] * getPDF(float(x[d]), \
-                                var[(k,d)], mean[(k,d)]) /denominator)
-                    else:
-                        pick[k] *= P[(k,d)] if x[d] > 0 \
-                            else (1-P[(k,d)])
-            # Plot
-            ax.scatter(x[0],x[1],x[2],c=color[pick.index(max(pick))])
-        plt.show()
-
-
+        if opt.small:
+            plot(data,numExamples,numClusters,dimensions,P,var,mean,attributes)
 
 
 if __name__ == "__main__":

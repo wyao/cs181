@@ -1,5 +1,8 @@
 import itertools
 import math
+import numpy as np
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
 
 def argmin(seq, fn):
     """Return an element with lowest fn(seq[i]) score; tie goes to first one.
@@ -81,13 +84,13 @@ def ccent(c1, c2, d):
 
     return d(nx, ny)
 
-attributes = [
+attributes_small = [
     {'isContinuous':True},
     {'isContinuous':True},
     {'isContinuous':False}
 ]
 
-attributes2 = [
+attributes = [
     {'attribute':"age: continuous.", 'isContinuous':True},
     {'attribute':"workclass-Private", 'isContinuous':False},
     {'attribute':"workclass-Self-emp-not-inc", 'isContinuous':False},
@@ -144,3 +147,27 @@ def getPDF(x, var, mean):
     p =  (math.exp( -math.pow((x-mean),2) / (2*var) )) / \
         math.sqrt(2*math.pi*var)
     return p if p > delta else delta
+
+def plot(data,numExamples,numClusters,dimensions,P,var,mean,attr):
+    color = ['r','b','g','black']
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    # Assign
+    for x in data[:numExamples]:
+        pick = []
+        for k in xrange(numClusters):
+            pick.append(P[k])
+            for d in xrange(dimensions):
+                if attr[d]['isContinuous']:
+                    denominator = 0.
+                    for k_ in xrange(numClusters):
+                        denominator += P[k_] * \
+                            getPDF(float(x[d]), var[(k_,d)], mean[(k_,d)])
+                        pick[k] += (P[k] * getPDF(float(x[d]), \
+                            var[(k,d)], mean[(k,d)]) /denominator)
+                else:
+                    pick[k] *= P[(k,d)] if x[d] > 0 \
+                        else (1-P[(k,d)])
+        # Plot
+        ax.scatter(x[0],x[1],x[2],c=color[pick.index(max(pick))])
+    plt.show()
