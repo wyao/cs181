@@ -119,9 +119,8 @@ def main():
 
         # Repeatedly update responsibility and prototype vectors
         converged = False
-        iteration = 1
+        iteration = 0
         while not converged:
-            print iteration
             # Update responsibility vectors
             newAssignments = []
             for n in xrange(numExamples):
@@ -149,12 +148,15 @@ def main():
 
             iteration += 1
 
-            # Calculate means
-            sqrErr = 0.
-            for n in xrange(numExamples):
-                sqrErr += squareDistance(data[n], prototypes[assignments[n]])
-            print sqrErr/numExamples
-        print counts
+        # Print mean
+        print prototypes
+
+        # Calculate mean squared error
+        sqrErr = 0.
+        for n in xrange(numExamples):
+            sqrErr += squareDistance(data[n], prototypes[assignments[n]])
+        print "Mean Squared Error:", sqrErr/numExamples
+        print "Iterations:", iteration
 
     # HAC
     elif opt.max or opt.min or opt.mean or opt.cent:
@@ -182,7 +184,17 @@ def main():
             # Merge clusters
             clusters[a] = clusters[a] + clusters[b]
             clusters.pop(b)
+        # Print mean
+        clusterMeans = []
+        for cluster in clusters:
+            means = [0.] * len(cluster[0])
+            for x in cluster:
+                for i,xi in enumerate(x):
+                    means[i] += xi
+            clusterMeans.append([xi/len(cluster) for xi in means])
+        print clusterMeans
 
+        # Plot 3D
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
         for c,color in zip(clusters, ['r','b','g','black']):
