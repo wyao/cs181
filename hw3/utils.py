@@ -82,6 +82,12 @@ def ccent(c1, c2, d):
     return d(nx, ny)
 
 attributes = [
+    {'isContinuous':True},
+    {'isContinuous':True},
+    {'isContinuous':False}
+]
+
+attributes2 = [
     {'attribute':"age: continuous.", 'isContinuous':True},
     {'attribute':"workclass-Private", 'isContinuous':False},
     {'attribute':"workclass-Self-emp-not-inc", 'isContinuous':False},
