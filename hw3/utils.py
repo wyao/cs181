@@ -132,6 +132,9 @@ attributes = [
     {'attribute':"income: 0 = >50K, 1 = <=50K.", 'isContinuous':False}
 ]
 
+delta = 0.00000001
+
 def getPDF(x, var, mean):
-    return (math.exp( -math.pow((x-mean),2) / (2*var) )) / \
+    p =  (math.exp( -math.pow((x-mean),2) / (2*var) )) / \
         math.sqrt(2*math.pi*var)
+    return p if p > delta else delta

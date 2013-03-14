@@ -208,7 +208,8 @@ def main():
         P = {} # Parameters
         mean = {}
         var = {}
-        pdf = {} # Probabilities from using prob distr function
+        w = {} # gamma for the Gaussians
+        discrete = float(len([a for a in attributes if not a['isContinuous']]))
 
         # Set initial parameters
         for k in xrange(numClusters):
@@ -236,23 +237,30 @@ def main():
                     prob.append(float(P[k]))
                 # For each attribute calculate probabilities
                 for d,xi in enumerate(x):
+                    w_denominator = 0.
                     for k in xrange(numClusters):
                         if attributes[d]['isContinuous']:
-                            pdf[(k,d,n)] = getPDF(float(xi), var[(k,d)], \
+                            # TODO
+                            w[(k,d,n)] = getPDF(float(xi), var[(k,d)], \
                                 mean[(k,d)])
-                            prob[k] *= pdf[(k,d,n)]
+                            w_denominator += w[(k,d,n)]
                         else:
                             if xi > 0:
                                 prob[k] *= P[(k,d)]
                             else:
                                 prob[k] *= (1-P[(k,d)])
+                    # Calibrate gamma
+                    for k in xrange(numClusters):
+                        if attributes[d]['isContinuous']:
+                            w[(k,d,n)] /= w_denominator
                 # Sum up expected values
                 totalProb = sum(prob) # 0 if every discrete xi is 0.0 TODO
                 for k in xrange(numClusters):
                     if totalProb: # If totalProb != 0.0
                         E[k] += prob[k]/totalProb
                         for d in xrange(dimensions):
-                            if x[d] > 0:
+                            if not attributes[d]['isContinuous'] \
+                                and x[d] > 0:
                                 E[(k,d)] += prob[k]/totalProb
             # Maximization step
             for k in xrange(numClusters):
@@ -267,13 +275,23 @@ def main():
                         meanNumerator = 0.
                         varNumerator = 0.
                         for n in xrange(numExamples):
-                            denominator += pdf[(k,d,n)]
-                            meanNumerator += pdf[(k,d,n)] * data[n][d]
+                            denominator += w[(k,d,n)]
+                            meanNumerator += w[(k,d,n)] * data[n][d]
                         mean[(k,d)] = meanNumerator/denominator
                         for n in xrange(numExamples):
-                            varNumerator += pdf[(k,d,n)] * \
+                            varNumerator += w[(k,d,n)] * \
                                 math.pow(data[n][d] - mean[(k,d)],2)
                         var[(k,d)] = varNumerator/denominator
+            # Update cluster's probability by mixing
+            for k in xrange(numClusters):
+                P[k] *= discrete/dimensions
+                for d in xrange(dimensions):
+                    if attributes[d]['isContinuous']:
+                        N = 0. # Same as denominator from above
+                        for n in xrange(numExamples):
+                            N += w[(k,d,n)]
+                        P[k] += ( (N/numExamples) /dimensions)
+
             print [P[k] for k in xrange(numClusters)]
 
 if __name__ == "__main__":
