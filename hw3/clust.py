@@ -222,7 +222,7 @@ def main():
                     P[(k,d)] = random.random()
         # Run EM
         converged = False
-        for _ in xrange(30):
+        for _ in xrange(100):
             # Calculate expected values step
             # Set all expected values to 0
             for k in xrange(numClusters):
@@ -291,8 +291,33 @@ def main():
                         for n in xrange(numExamples):
                             N += w[(k,d,n)]
                         P[k] += ( (N/numExamples) /dimensions)
-
             print [P[k] for k in xrange(numClusters)]
+        # Plot
+        color = ['r','b','g','black']
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        # Assign
+        for x in data[:numExamples]:
+            pick = []
+            for k in xrange(numClusters):
+                pick.append(P[k])
+                for d in xrange(dimensions):
+                    if attributes[d]['isContinuous']:
+                        denominator = 0.
+                        for k_ in xrange(numClusters):
+                            denominator += P[k_] * \
+                                getPDF(float(x[d]), var[(k_,d)], mean[(k_,d)])
+                            pick[k] += (P[k] * getPDF(float(x[d]), \
+                                var[(k,d)], mean[(k,d)]) /denominator)
+                    else:
+                        pick[k] *= P[(k,d)] if x[d] > 0 \
+                            else (1-P[(k,d)])
+            # Plot
+            ax.scatter(x[0],x[1],x[2],c=color[pick.index(max(pick))])
+        plt.show()
+
+
+
 
 if __name__ == "__main__":
     validateInput()
