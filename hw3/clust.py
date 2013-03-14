@@ -56,11 +56,6 @@ def printOutput(data, numExamples):
 # You should modify this function to run your experiments
 
 def main():
-    # Validate the inputs
-    # if(validateInput() == False):
-    #     print "Usage: clust numClusters numExamples [-k]"
-    #     sys.exit(1);
-
     parser = OptionParser()
     parser.add_option('-k', action='store_true',
         dest='k_means', default=False)
@@ -97,7 +92,6 @@ def main():
     data = parseInput(dataset)
     
     dataset.close()
-    #printOutput(data,numExamples)
     assert(numExamples <= len(data))
     assert(numClusters <= numExamples)
 
@@ -156,13 +150,10 @@ def main():
             iteration += 1
 
             # Calculate means
-            numerator = [0.] * numClusters
-            denominator = [0] * numClusters
+            sqrErr = 0.
             for n in xrange(numExamples):
-                numerator[assignments[n]] += \
-                    squareDistance(data[n], prototypes[assignments[n]])
-                denominator[assignments[n]] += 1
-            print [n/d for n,d in zip(numerator, denominator)]
+                sqrErr += squareDistance(data[n], prototypes[assignments[n]])
+            print sqrErr/numExamples
         print counts
 
     # HAC
