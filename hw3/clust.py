@@ -149,14 +149,18 @@ def main():
             iteration += 1
 
         # Print mean
+        print "Means:"
         print prototypes
+        print ""
 
         # Calculate mean squared error
         sqrErr = 0.
         for n in xrange(numExamples):
             sqrErr += squareDistance(data[n], prototypes[assignments[n]])
         print "Mean Squared Error:", sqrErr/numExamples
+        print ""
         print "Iterations:", iteration
+        print ""
 
     # HAC
     elif opt.max or opt.min or opt.mean or opt.cent:
@@ -192,7 +196,10 @@ def main():
                 for i,xi in enumerate(x):
                     means[i] += xi
             clusterMeans.append([xi/len(cluster) for xi in means])
+        print "Means:"
         print clusterMeans
+        print "\nInstances per cluster:"
+        print [len(c) for c in clusters]
 
         # Plot 3D
         fig = plt.figure()
@@ -218,8 +225,10 @@ def main():
             for d in xrange(dimensions):
                 P[(k,d)] = random.random()
         # Run EM
-        converged = False
-        for _ in xrange(100):
+        converged_count = 0
+        likelihood = float('inf')
+        iterations = 0
+        while converged_count < 3:
             # Calculate expected values step
             # Set all expected values to 0
             for k in xrange(numClusters):
@@ -263,9 +272,9 @@ def main():
                 P[k] = E[k]/numExamples
                 for d in xrange(dimensions):
                     P[(k,d)] = E[(k,d)]/E[k]
-            print [P[k] for k in xrange(numClusters)]
+            #print [P[k] for k in xrange(numClusters)]
 
-            likelihood = 0.
+            new_likelihood = 0.
             # Assign cluster
             for x in data[:numExamples]:
                 pick = []
@@ -281,12 +290,17 @@ def main():
                 k = pick.index(max(pick))
                 for d,xi in enumerate(x):
                     if attributes[d]['isContinuous']:
-                        likelihood += math.log(P[(k,d)]) if xi > .5 \
+                        new_likelihood += math.log(P[(k,d)]) if xi > .5 \
                             else math.log(1-P[(k,d)])
                     else:
-                        likelihood += math.log(P[(k,d)]) if xi > 0 \
+                        new_likelihood += math.log(P[(k,d)]) if xi > 0 \
                             else math.log(1-P[(k,d)])
+            converged_count = converged_count + 1 \
+                if (likelihood - new_likelihood > math.exp(-5)) else 0
+            likelihood = new_likelihood
             print likelihood
+            iterations += 1
+        print 'Interations: ', iterations
 
     elif opt.mix:
         # Set up discretization info
