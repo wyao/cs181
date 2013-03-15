@@ -228,7 +228,7 @@ def main():
         converged_count = 0
         likelihood = float('inf')
         iterations = 0
-        while converged_count < 3:
+        while converged_count < 2:
             # Calculate expected values step
             # Set all expected values to 0
             for k in xrange(numClusters):
@@ -289,12 +289,14 @@ def main():
                                 else (1-P[(k,d)])
                 k = pick.index(max(pick))
                 for d,xi in enumerate(x):
+
                     if attributes[d]['isContinuous']:
                         new_likelihood += math.log(P[(k,d)]) if xi > .5 \
                             else math.log(1-P[(k,d)])
                     else:
                         new_likelihood += math.log(P[(k,d)]) if xi > 0 \
                             else math.log(1-P[(k,d)])
+
             converged_count = converged_count + 1 \
                 if (likelihood - new_likelihood > math.exp(-5)) else 0
             likelihood = new_likelihood
@@ -323,7 +325,10 @@ def main():
                 else:
                     P[(k,d)] = random.random()
         # Run EM
-        for _ in xrange(100):
+        converged_count = 0
+        likelihood = float('inf')
+        iterations = 0
+        while converged_count < 2:
             # Calculate expected values step
             # Set all expected values to 0
             for k in xrange(numClusters):
@@ -392,7 +397,34 @@ def main():
                         for n in xrange(numExamples):
                             N += w[(k,d,n)]
                         P[k] += ( (N/numExamples) /dimensions)
-            print [P[k] for k in xrange(numClusters)]
+
+
+
+            new_likelihood = 0.
+            # Assign cluster
+            for x in data[:numExamples]:
+                pick = []
+                for k in xrange(numClusters):
+                    pick.append(P[k])
+                    for d in xrange(dimensions):
+                        if not attributes[d]['isContinuous']:
+                            pick[k] *= P[(k,d)] if x[d] > 0 \
+                                else (1-P[(k,d)])
+                k = pick.index(max(pick))
+                for d,xi in enumerate(x):
+
+                    if not attributes[d]['isContinuous']:
+                        new_likelihood += math.log(P[(k,d)]) if xi > 0 \
+                            else math.log(1-P[(k,d)])
+
+            converged_count = converged_count + 1 \
+                if (likelihood - new_likelihood > math.exp(-8)) else 0
+            likelihood = new_likelihood
+            print likelihood
+            iterations += 1
+        print 'Interations: ', iterations
+
+
         if opt.small:
             plot(data,numExamples,numClusters,dimensions,P,var,mean,attributes)
 

@@ -90,6 +90,8 @@ attributes_small = [
     {'isContinuous':False}
 ]
 
+continuous_indicies = [0,9,10,44,45,46]
+
 attributes = [
     {'attribute':"age: continuous.", 'isContinuous':True},
     {'attribute':"workclass-Private", 'isContinuous':False},
