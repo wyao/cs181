@@ -9,6 +9,7 @@ import utils
 import operator
 from optparse import OptionParser
 import math
+import time
 import py.test
 
 DATAFILE = "adults.txt"
@@ -120,7 +121,9 @@ def main():
         # Repeatedly update responsibility and prototype vectors
         converged = False
         iteration = 0
+        total_time = 0.
         while not converged:
+            start = time.time()
             # Update responsibility vectors
             newAssignments = []
             for n in xrange(numExamples):
@@ -146,6 +149,7 @@ def main():
             for k in xrange(numClusters):
                 prototypes[k] = map(lambda x: x/counts[k], prototypes[k])
 
+            total_time += (time.time()-start)
             iteration += 1
 
         # Print mean
@@ -161,6 +165,7 @@ def main():
         print ""
         print "Iterations:", iteration
         print ""
+        print "Time per iteration (averaged in seconds): ", (total_time/float(iteration))
 
     # HAC
     elif opt.max or opt.min or opt.mean or opt.cent:
@@ -328,7 +333,9 @@ def main():
         converged_count = 0
         likelihood = float('inf')
         iterations = 0
+        total_time = 0.
         while converged_count < 2:
+            start = time.time()
             # Calculate expected values step
             # Set all expected values to 0
             for k in xrange(numClusters):
@@ -398,6 +405,9 @@ def main():
                             N += w[(k,d,n)]
                         P[k] += ( (N/numExamples) /dimensions)
 
+            # Update runtime
+            total_time += time.time() - start
+
             new_likelihood = 0.
             # Assign cluster
             for x in data[:numExamples]:
@@ -416,7 +426,7 @@ def main():
                             else math.log(1-P[(k,d)])
 
             converged_count = converged_count + 1 \
-                if (likelihood - new_likelihood > math.exp(-8)) else 0
+                if (new_likelihood - likelihood < math.exp(-5)) else 0
             likelihood = new_likelihood
             print likelihood
             iterations += 1
@@ -438,6 +448,8 @@ def main():
 
         print 'Interations: ', iterations
 
+        print 'Time per iteration (averaged in seconds): ', \
+            (total_time / float(iterations))
 
         if opt.small:
             plot(data,numExamples,numClusters,dimensions,P,var,mean,attributes)
