@@ -398,8 +398,6 @@ def main():
                             N += w[(k,d,n)]
                         P[k] += ( (N/numExamples) /dimensions)
 
-
-
             new_likelihood = 0.
             # Assign cluster
             for x in data[:numExamples]:
@@ -422,6 +420,22 @@ def main():
             likelihood = new_likelihood
             print likelihood
             iterations += 1
+
+        # Calculate means
+        means = []
+        for k in xrange(numClusters):
+            m = []
+            for d in xrange(dimensions):
+                if attributes[d]['isContinuous']:
+                    m.append(mean[(k,d)])
+                else:
+                    if d in [43,47]: # If not nomial
+                        m.append(P[(k,d)])
+                    else:
+                        m.append(P[(k,d)] / (math.sqrt(2.)))
+            means.append(m)
+        print "Means: ", means
+
         print 'Interations: ', iterations
 
 
