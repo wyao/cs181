@@ -48,17 +48,17 @@ def T(a, s, s_prime):
   diff = s - s_prime
   wedge_index = throw.wedges.index(a.wedge)
 
-  # Set region
+  # Set ring
   for r in [-2,-1,0,1,2]:
-    region = abs(a.region+r)
-    if region > 7:
-      region = 7
+    ring = abs(a.ring+r)
+    if ring > 7:
+      ring = 7
     # Set wedge
     for w in [-2,-1,0,1,2]:
       wedge = throw.wedges[(wedge_index+w) % len(throw.wedges)]
       # Get score
       score = throw.location_to_score(
-        throw.location(region, wedge)
+        throw.location(ring, wedge))
       if score == diff:
         return prob(r) * prob(w)
   return 0.
