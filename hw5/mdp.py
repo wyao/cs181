@@ -36,7 +36,32 @@ def get_target(score):
 def T(a, s, s_prime):
   # takes an action a, current state s, and next state s_prime
   # returns the probability of transitioning to s_prime when taking action a in state s
-  return 0
+  def prob(i):
+    if i == 0:
+      return .4
+    if abs(i) == 1:
+      return .2
+    if abs(i) == 2:
+      return .1
+
+  # Useful local variables
+  diff = s - s_prime
+  wedge_index = throw.wedges.index(a.wedge)
+
+  # Set region
+  for r in [-2,-1,0,1,2]:
+    region = abs(a.region+r)
+    if region > 7:
+      region = 7
+    # Set wedge
+    for w in [-2,-1,0,1,2]:
+      wedge = throw.wedges[(wedge_index+w) % len(throw.wedges)]
+      # Get score
+      score = throw.location_to_score(
+        throw.location(region, wedge)
+      if score == diff:
+        return prob(r) * prob(w)
+  return 0.
 
 
 def infiniteValueIteration(gamma):
