@@ -40,8 +40,12 @@ def get_actions():
 def R(s,a):
   # takes a state s and action a
   # returns the reward for completing action a in state s
-  return 0
-
+  """ Let reward be the expected score gained given the action
+  """
+  reward = 0
+  for score in xrange(1, s+1):
+    reward += mdp.T(a, s, s - score) * score
+  return reward
 
 # Play a single game 
 def play(method):
