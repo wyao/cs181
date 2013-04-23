@@ -46,9 +46,12 @@ def R(s,a):
   for score in xrange(1, s+1):
     reward += mdp.T(a, s, s - score) * score
   return reward
+  # if s == 0:
+  #   return 1.
+  # return 0.
 
 # Play a single game 
-def play(method):
+def play(method, GAMMA, d=None):
     score = throw.START_SCORE
     turns = 0
     
@@ -65,15 +68,20 @@ def play(method):
         targets.append(target)
         results.append(result)
         raw_score = throw.location_to_score(result)
-        print "Target: wedge", target.wedge,", ring", target.ring
-        print "Result: wedge", result.wedge,", ring", result.ring
-        print "Raw Score:", raw_score
-        print "Score:", score
+        if d:
+            if d[score] == None:
+                d[score] = throw.location_to_score(target)
+            else:
+                assert(d[score] == throw.location_to_score(target))
+        # print "Target: wedge", target.wedge,", ring", target.ring
+        # print "Result: wedge", result.wedge,", ring", result.ring
+        # print "Raw Score:", raw_score
+        # print "Score:", score
         if raw_score <= score:
             score = int(score - raw_score)
-        else:
-            print
-            print "TOO HIGH!"
+        # else:
+        #     print
+        #     print "TOO HIGH!"
         if score == 0:
             break
 
@@ -81,18 +89,32 @@ def play(method):
             target = mdp.get_target(score)
         else:
             target = modelfree.get_target(score)
-            
-    print "WOOHOO!  It only took", turns, " turns"
+    # print "WOOHOO!  It only took", turns, " turns"
     #end_game(turns)
     return turns
 
 # Play n games and return the average score. 
-def test(n, method):
+def test(n, method, GAMMA):
     score = 0
-    for i in range(n):
-        score += play(method)
-        
-    print "Average turns = ", float(score)/float(n)
+    if n > 0:
+        for i in range(n):
+            score += play(method, GAMMA)
+
+        print "Average turns = ", float(score)/float(n)
+    else:
+        d = {}
+        for i in xrange(1,throw.START_SCORE+1):
+            d[i] = None
+        def determined_policy(d):
+            for v in d.values():
+                if v == None:
+                    return False
+            return True
+
+        while not determined_policy(d):
+            play(method, GAMMA, d)
+
+        print d
     return score
 
 # <CODE HERE>: Feel free to modify the main function to set up your experiments.
@@ -107,8 +129,12 @@ def main():
 #*************************************************
 
 # Default is to solve MDP and play 1 game
-    #throw.use_simple_thrower()
-    #test(1, "mdp")    
+    throw.use_simple_thrower()
+    GAMMA = 0.
+    for i in range(0, 11):
+        print GAMMA,
+        test(-1, "mdp", GAMMA)
+        GAMMA +=.1
 
 #*************************************************#
 # Uncomment the lines below to run the modelbased #
