@@ -26,11 +26,11 @@ def start_game():
         print "LEARNING_RATE: ", LEARNING_RATE
         print "strategy: ", darts.strategy
         actions = darts.get_actions()
-        s_old = throw.START_SCORE
+    s_old = throw.START_SCORE
     for s in darts.get_states():
         Q[s] = {}
         for a in actions:
-            Q[s][a] = 0
+            Q[s][a] = 0.
     a_old = actions[0]#throw.location(throw.INNER_RING, throw.NUM_WEDGES)
     return a_old
 
