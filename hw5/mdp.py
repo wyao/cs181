@@ -17,7 +17,7 @@ import darts
 # make pi global so computation need only occur once
 PI = {}
 EPSILON = .001
-
+T_CACHE = {}
 
 # actual
 def start_game(gamma):
@@ -36,6 +36,9 @@ def get_target(score):
 def T(a, s, s_prime):
   # takes an action a, current state s, and next state s_prime
   # returns the probability of transitioning to s_prime when taking action a in state s
+  if (T_CACHE.has_key((a,s,s_prime))):
+    return T_CACHE[(a,s,s_prime)]
+
   def prob(i):
     if i == 0:
       return .4
@@ -60,7 +63,9 @@ def T(a, s, s_prime):
       score = throw.location_to_score(
         throw.location(ring, wedge))
       if score == diff:
-        return prob(r) * prob(w)
+        ret = prob(r) * prob(w)
+        T_CACHE[(a,s,s_prime)] = ret
+        return ret
   return 0.
 
 
