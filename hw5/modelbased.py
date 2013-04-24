@@ -23,14 +23,15 @@ def get_target(score):
 # Define your first exploration/exploitation strategy here. Return 0 to exploit and 1 to explore. 
 # You may want to pass arguments from the modelbased function. 
 def ex_strategy_one():
-  return int(random.random() < .25)
+  return int(random.random() < .1)
 
 
 # Define your first exploration/exploitation strategy here. Return 0 to exploit and 1 to explore. 
 # You may want to pass arguments from the modelbased function.
 def ex_strategy_two(num_iterations):
   """e-greedy with num_transitions as the time periods"""
-  return int(random.random() < 1. / num_iterations)
+  prob = max((1. / (float(num_iterations)+10.)), 0.005)
+  return int(random.random() < prob)
 
 # Implement a model-based reinforcement learning algorithm. 
 # Given num_games (the number of games to play), store the
