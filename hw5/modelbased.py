@@ -36,7 +36,7 @@ def ex_strategy_two(num_iterations):
 # Implement a model-based reinforcement learning algorithm. 
 # Given num_games (the number of games to play), store the
 # learned transition probabilities in T.
-def modelbased(gamma, epoch_size, num_games):
+def modelbased(gamma, epoch_size, num_games, strategy=1):
 
     # store all actions (targets on dartboard) in actions array
     actions = darts.get_actions()
@@ -87,8 +87,10 @@ def modelbased(gamma, epoch_size, num_games):
             # The following two statements implement two exploration-exploitation
             # strategies. Comment out the strategy that you wish not to use.
 			
-            to_explore = ex_strategy_one()
-            #to_explore = ex_strategy_two(num_iterations)
+            if strategy == 1:
+              to_explore = ex_strategy_one()
+            else:
+              to_explore = ex_strategy_two(num_iterations)
     		
             if to_explore:
             	# explore

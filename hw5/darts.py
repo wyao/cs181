@@ -149,10 +149,13 @@ def main():
 # the modelbased algorithm.
     random.seed(1)
     throw.init_thrower()
+    strategy = 1
+    print "Games: ", num_games
+    print "Strategy: ", strategy
     for i in xrange(int(sys.argv[1]), int(sys.argv[2]), 10):
         EPOCH_SIZE = i
         print "epoch size: ", EPOCH_SIZE
-        modelbased.modelbased(GAMMA, EPOCH_SIZE, num_games)
+        modelbased.modelbased(GAMMA, EPOCH_SIZE, num_games, strategy)
 
 #*************************************************#
 # Uncomment the lines below to run the modelfree  #
