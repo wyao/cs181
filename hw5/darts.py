@@ -51,7 +51,7 @@ def R(s,a):
   # return 0.
 
 # Play a single game 
-def play(method, GAMMA, d=None):
+def play(method, d=None):
     score = throw.START_SCORE
     turns = 0
     
@@ -94,11 +94,11 @@ def play(method, GAMMA, d=None):
     return turns
 
 # Play n games and return the average score. 
-def test(n, method, GAMMA):
+def test(n, method):
     score = 0
     if n > 0:
         for i in range(n):
-            score += play(method, GAMMA)
+            score += play(method)
 
         print "Average turns = ", float(score)/float(n)
     else:
@@ -112,7 +112,7 @@ def test(n, method, GAMMA):
             return True
 
         while not determined_policy(d):
-            play(method, GAMMA, d)
+            play(method, d)
 
         print d
     return score
@@ -129,12 +129,13 @@ def main():
 #*************************************************
 
 # Default is to solve MDP and play 1 game
-    # throw.use_simple_thrower()
-    # GAMMA = 0.
-    # for i in range(0, 11):
-    #     print GAMMA,
-    #     test(-1, "mdp", GAMMA)
-    #     GAMMA +=.1
+    global GAMMA
+    throw.use_simple_thrower()
+    GAMMA = 0.
+    for i in range(0, 11):
+        print GAMMA,
+        test(-1, "mdp")
+        GAMMA +=.1
 
 #*************************************************#
 # Uncomment the lines below to run the modelbased #
