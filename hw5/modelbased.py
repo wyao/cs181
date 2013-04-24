@@ -29,6 +29,7 @@ def ex_strategy_one():
 # Define your first exploration/exploitation strategy here. Return 0 to exploit and 1 to explore. 
 # You may want to pass arguments from the modelbased function.
 def ex_strategy_two(num_iterations):
+  """e-greedy with num_transitions as the time periods"""
   return int(random.random() < 1. / num_iterations)
 
 # Implement a model-based reinforcement learning algorithm. 
@@ -47,6 +48,13 @@ def modelbased(gamma, epoch_size, num_games):
     T_matrix = {}
     num_iterations = 0
     
+    V = {}
+    V[0] = {}
+    V[1] = {}
+    # initialize v
+    for s in states:
+      V[0][s] = 0
+      V[1][s] = 0
     
     # Initialize all arrays to 0 except the policy, which should be assigned a random action for each state.
     for s in states:
@@ -121,29 +129,20 @@ def modelbased(gamma, epoch_size, num_games):
 
                 # Update strategy (stored in pi) based on newly updated reward function and transition
                 # probabilities 
-                T_matrix, pi_star = modelbased_value_iteration(gamma, T_matrix, pi_star)
+                T_matrix, pi_star = modelbased_value_iteration(gamma, T_matrix, pi_star, V)
     
     print "Average turns = ", float(num_iterations)/float(num_games)
 
 
 # A modified version of infinite horizon value iteration from part 2 */
-def modelbased_value_iteration(gamma, T_matrix, pi_star):
-  V = {}
-  V[0] = {}
-  V[1] = {}
+def modelbased_value_iteration(gamma, T_matrix, pi_star, V):
   converging = 0
   num_iterations = 0
   Q = {}
 
   # Get all possible actions
   actions = darts.get_actions()
-
   states = darts.get_states()
-
-  # initialize v
-  for s in states:
-    V[0][s] = 0
-    V[1][s] = 0
 
   # iterate until all state values (v[s]) converge 
   while not(converging):
