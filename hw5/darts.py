@@ -129,12 +129,12 @@ def main():
 #*************************************************
 
 # Default is to solve MDP and play 1 game
-    throw.use_simple_thrower()
-    GAMMA = 0.
-    for i in range(0, 11):
-        print GAMMA,
-        test(-1, "mdp", GAMMA)
-        GAMMA +=.1
+    # throw.use_simple_thrower()
+    # GAMMA = 0.
+    # for i in range(0, 11):
+    #     print GAMMA,
+    #     test(-1, "mdp", GAMMA)
+    #     GAMMA +=.1
 
 #*************************************************#
 # Uncomment the lines below to run the modelbased #
@@ -147,9 +147,12 @@ def main():
 # multiple calls to main().
 # Then, initialize the throwing model and run
 # the modelbased algorithm.
-    #random.seed()
-    #throw.init_thrower()
-    #modelbased.modelbased(GAMMA, EPOCH_SIZE, num_games)
+    random.seed(1)
+    throw.init_thrower()
+    for i in xrange(int(sys.argv[1]), int(sys.argv[2]), 10):
+        EPOCH_SIZE = i
+        print "epoch size: ", EPOCH_SIZE
+        modelbased.modelbased(GAMMA, EPOCH_SIZE, num_games)
 
 #*************************************************#
 # Uncomment the lines below to run the modelfree  #
