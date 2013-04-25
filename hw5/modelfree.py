@@ -26,18 +26,17 @@ def start_game():
         print "LEARNING_RATE: ", LEARNING_RATE
         print "strategy: ", darts.strategy
         actions = darts.get_actions()
+        for s in darts.get_states():
+            Q[s] = {}
+            for a in actions:
+                Q[s][a] = 0.
     s_old = throw.START_SCORE
-    for s in darts.get_states():
-        Q[s] = {}
-        for a in actions:
-            Q[s][a] = 0.
-    a_old = actions[0]#throw.location(throw.INNER_RING, throw.NUM_WEDGES)
+    a_old = actions[-15]
     return a_old
 
 def get_target(s_):
     global s_old, a_old, num_iterations
     Q_learning(s_old, s_, a_old)
-    s_old = s_
 
     to_explore = 0
     if darts.strategy == 1:
