@@ -48,7 +48,21 @@ def get_target(s_):
     if to_explore:
         a_old = choice(actions)
     else:
-        a_old = max([(value,a) for (a,value) in Q[s_].iteritems()])[1]
+        choices = [(value,a) for (a,value) in Q[s_].iteritems()]
+        """ If first time at state, shoot for 24 (the max) if score >= max
+            Else pick random action that does not exceed score
+        """
+        if max(choices)[0] == 0:
+            if s_ < 24:
+                a_old = choice(actions)
+                while (throw.location_to_score(a_old) > s_):
+                    a_old = choice(actions)
+            else:
+                a_old = actions[-15]
+            return a_old
+        # Else pick action with max Q
+        a_old = max(choices)[1]
+    s_old = s_
     return a_old
 
 
