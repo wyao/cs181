@@ -1,6 +1,7 @@
 from random import *
 import throw
 import darts
+import py.test
  
 # The default player aims for the maximum score, unless the
 # current score is less than the number of wedges, in which

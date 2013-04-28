@@ -12,7 +12,7 @@ import modelfree
 
 GAMMA = .5
 EPOCH_SIZE = 10
-
+strategy = 2
 
 # <CODE HERE>: Complete this function, which should return a
 # list of all possible states.
@@ -128,14 +128,14 @@ def main():
 # the thrower specified in question 2.           #
 #*************************************************
 
-# Default is to solve MDP and play 1 game
-    global GAMMA
-    throw.use_simple_thrower()
-    GAMMA = 0.
-    for i in range(0, 11):
-        print GAMMA,
-        test(-1, "mdp")
-        GAMMA +=.1
+# # Default is to solve MDP and play 1 game
+    # global GAMMA
+    # throw.use_simple_thrower()
+    # GAMMA = 0.
+    # for i in range(0, 5):
+    #     print GAMMA,
+    #     test(-1, "mdp")
+    #     GAMMA +=.25
 
 #*************************************************#
 # Uncomment the lines below to run the modelbased #
@@ -148,15 +148,14 @@ def main():
 # multiple calls to main().
 # Then, initialize the throwing model and run
 # the modelbased algorithm.
-    random.seed(1)
-    throw.init_thrower()
-    strategy = 1
-    print "Games: ", num_games
-    print "Strategy: ", strategy
-    for i in xrange(int(sys.argv[1]), int(sys.argv[2]), 10):
-        EPOCH_SIZE = i
-        print "epoch size: ", EPOCH_SIZE
-        modelbased.modelbased(GAMMA, EPOCH_SIZE, num_games, strategy)
+    # random.seed(1)
+    # throw.init_thrower()
+    # print "Games: ", num_games
+    # print "Strategy: ", strategy
+    # for i in xrange(int(sys.argv[1]), int(sys.argv[2]), 10):
+    #     EPOCH_SIZE = i
+    #     print "epoch size: ", EPOCH_SIZE
+    #     modelbased.modelbased(GAMMA, EPOCH_SIZE, num_games, strategy)
 
 #*************************************************#
 # Uncomment the lines below to run the modelfree  #
@@ -165,9 +164,9 @@ def main():
 
 # Plays 1 game using a default player. No modelfree
 # code is provided. 
-    #random.seed()
-    #throw.init_thrower()
-    #test(1, "modelfree")
+    random.seed(1)
+    throw.init_thrower()
+    test(1000, "modelfree")
 
 
 if __name__ =="__main__":
