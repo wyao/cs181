@@ -35,3 +35,8 @@ nosetests.xml
 .pydevproject
 .DS_Store
 hw1/figure.pdf
+hw5_/darts.py
+hw5_/mdp.py
+hw5_/modelbased.py
+hw5_/modelfree.py
+hw5_/throw.py
