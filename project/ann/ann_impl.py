@@ -90,24 +90,25 @@ class EncodedNetworkFramework(NetworkFramework):
     transformed_values = map(lambda n: n.transformed_value, self.network.outputs)
     return transformed_values.index(max(transformed_values))
 
-  def InitializeWeights(self):
+  def InitializeWeights(self, file_name):
     """
     Initializes with offline weights or with random values
     between [-0.01, 0.01].
     """
     try:
-      with open('filename') as f:
+      with open(file_name) as f:
         serializedWeights = pickle.load(f)
         f.close()
         for w,sw in zip(self.network.weights,serializedWeights):
           w.value = sw
     except IOError:
+      print "Initializing weights randomly"
       for weight in self.network.weights:
         weight.value = random.uniform(-.01,.01)
 
-  def ExportWeights(self):
+  def ExportWeights(self, file_name):
     weights = [w.value for w in self.network.weights]
-    f = open("weights.txt","w")
+    f = open(file_name,"w")
     pickle.dump(weights, f)
     f.close()
 

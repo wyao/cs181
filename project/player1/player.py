@@ -4,7 +4,7 @@ import random
 import game_interface as game
 import py.test
 
-def get_move(view):
+def get_move(view, options):
     if view.GetPlantInfo() == game.STATUS_NUTRITIOUS_PLANT:
         eat = True
     elif view.GetPlantInfo() == game.STATUS_UNKNOWN_PLANT:

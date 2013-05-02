@@ -19,7 +19,7 @@ def get_move(view, cmd, options, player_id):
   signal.signal(signal.SIGALRM, timeout_handler)
   #signal.alarm(1)
   try: 
-    (mv, eat) = cmd(view)
+    (mv, eat) = cmd(view,options)
     # Clear the alarm.
     signal.alarm(0)
   except TimeoutException:
@@ -53,10 +53,10 @@ def run(options):
     (mv2, eat2) = get_move(player2_view, player2.player.get_move, options, 2)
 
     game.ExecuteMoves(mv1, eat1, mv2, eat2)
-    if options.display:
+    if options.display == 1:
       game_interface.curses_draw_board(game)
       game_interface.curses_init_round(game)
-    else:
+    elif options.display == 2:
       print mv1, eat1, mv2, eat2
       print player1_view.GetLife(), player2_view.GetLife()
     # Check whether someone's life is negative.
@@ -65,7 +65,10 @@ def run(options):
   
     if l1 <= 0 or l2 <= 0:
       # Export neural network weights
-      player2.player.network.ExportWeights()
+      if options.train == 1:
+        player2.player.network.ExportWeights(options.out_file)
+      elif options.train == 2:
+        print player2.player.correct / player2.player.instances
       if options.display:
         winner = 0
         if l1 < l2:
@@ -100,6 +103,10 @@ def main(argv):
                     help="starting life",type=int)
   parser.add_option("--life_per_turn", dest="life_per_turn", default=1,
                     help="life spent per turn",type=int)
+  parser.add_option("--hidden", type=int, default=15)
+  parser.add_option("--train", type=int, default=0)
+  parser.add_option("--in_file", type="string", default="weight.txt")
+  parser.add_option("--out_file", type="string", default="weight.txt")
   (options, args) = parser.parse_args()
 
   try:

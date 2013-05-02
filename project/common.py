@@ -3,7 +3,7 @@ import random
 import time
 import py.test
 
-def get_move(view):
+def get_move(view, options):
   # Choose a random direction.
   # If there is a plant in this location, then try and eat it.
   hasPlant = view.GetPlantInfo() == game_interface.STATUS_UNKNOWN_PLANT
