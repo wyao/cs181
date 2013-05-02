@@ -1,3 +1,4 @@
+import common
 import player1.player
 import player2.player
 import game_interface
@@ -16,7 +17,7 @@ def get_move(view, cmd, options, player_id):
   def timeout_handler(signum, frame):
     raise TimeoutException()
   signal.signal(signal.SIGALRM, timeout_handler)
-  signal.alarm(1)
+  #signal.alarm(1)
   try: 
     (mv, eat) = cmd(view)
     # Clear the alarm.
@@ -48,8 +49,8 @@ def run(options):
   
   # Keep running until one player runs out of life.
   while True:
-    (mv1, eat1) = get_move(player1_view, player1.player.get_move, options, 1)
-    (mv2, eat2) = get_move(player2_view, player2.player.get_move, options, 2)
+    (mv1, eat1) = get_move(player1_view, player2.player.get_move, options, 1)
+    (mv2, eat2) = get_move(player2_view, common.get_move, options, 2)
 
     game.ExecuteMoves(mv1, eat1, mv2, eat2)
     if options.display:
@@ -93,7 +94,7 @@ def main(argv):
                     help="penalty for eating a poisonous plant",type=int)
   parser.add_option("--observation_cost", dest="observation_cost", default=1,
                     help="cost for getting an image for a plant",type=int)
-  parser.add_option("--starting_life", dest="starting_life", default=100,
+  parser.add_option("-s", "--starting_life", dest="starting_life", default=100,
                     help="starting life",type=int)
   parser.add_option("--life_per_turn", dest="life_per_turn", default=1,
                     help="life spent per turn",type=int)

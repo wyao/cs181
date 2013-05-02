@@ -1,6 +1,7 @@
 import game_interface
 import random
 import time
+import py.test
 
 def get_move(view):
   # Choose a random direction.
