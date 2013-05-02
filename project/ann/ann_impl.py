@@ -95,8 +95,15 @@ class EncodedNetworkFramework(NetworkFramework):
     Initializes with offline weights or with random values
     between [-0.01, 0.01].
     """
-    for weight in self.network.weights:
-      weight.value = random.uniform(-.01,.01)
+    try:
+      with open('filename') as f:
+        serializedWeights = pickle.load(f)
+        f.close()
+        for w,sw in zip(self.network.weights,serializedWeights):
+          w.value = sw
+    except IOError:
+      for weight in self.network.weights:
+        weight.value = random.uniform(-.01,.01)
 
   def ExportWeights(self):
     weights = [w.value for w in self.network.weights]
