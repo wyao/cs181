@@ -10,30 +10,35 @@ lastScore = None
 lastImage = None
 
 # ANN training
+# Label 0: Poisonous, Label 1: Nutritious
 def get_move(view):
     global network, lastScore, lastImage
     # Initialize network
     if network == None:
         network = HiddenNetwork(15)
-    network.InitializeWeights()
+        network.FeedForwardFn = FeedForward
+        network.TrainFn = Train
+        network.InitializeWeights()
 
     # Train last round
     if lastImage != None:
-        target = [1.0,0.0] if view.GetLife() > lastScore else [0.0,1.0]
+        target = [0.0,1.0] if view.GetLife() > lastScore else [1.0,0.0]
         Backprop(network.network, lastImage, target, learning_rate)
 
-    lastImage = [float(x) for x in view.GetImage()]
-    # Train this round
-    if view.GetPlantInfo() == game.STATUS_NUTRITIOUS_PLANT or \
-            view.GetPlantInfo == game.STATUS_POISONOUS_PLANT:
-        target = [1.0,0.0] if view.GetPlantInfo() == game.STATUS_NUTRITIOUS_PLANT \
-            else [0.0,1.0]
+    plantInfo = view.GetPlantInfo()
+    if plantInfo == game.STATUS_NO_PLANT:
+        lastImage = None
+    else:
+        lastImage = [float(x) for x in view.GetImage()]
+        lastScore = view.GetLife()
 
+    # Train this round
+    if plantInfo == game.STATUS_NUTRITIOUS_PLANT or \
+            plantInfo == game.STATUS_POISONOUS_PLANT:
+        target = [0.0,1.0] if plantInfo == game.STATUS_NUTRITIOUS_PLANT \
+            else [0.0,0.0]
         Backprop(network.network, lastImage, target, learning_rate)
         lastImage = None
-    # Train next round
-    else:
-        lastScore = view.GetLife()
 
     direction = random.choice([game.UP,game.DOWN,game.LEFT,game.RIGHT])
     return (direction, True)

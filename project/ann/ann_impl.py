@@ -89,20 +89,6 @@ class EncodedNetworkFramework(NetworkFramework):
     transformed_values = map(lambda n: n.transformed_value, self.network.outputs)
     return transformed_values.index(max(transformed_values))
 
-  def Convert(self, image):
-    """
-    The *image* arguments has 2 attributes: *label* which indicates
-    the digit represented by the image, and *pixels* a matrix 14 x 14
-    represented by a list (first list is the first row, second list the
-    second row, ... ), containing numbers whose values are comprised
-    between 0 and 256.0. The function transforms this into a unique list
-    of 14 x 14 items, with normalized values (that is, the maximum possible
-    value should be 1).
-    """
-    input = Input()
-    input.values = [item/256. for sublist in image.pixels for item in sublist]
-    return input
-
   def InitializeWeights(self):
     """
     Initializes with offline weights or with random values

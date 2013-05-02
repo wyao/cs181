@@ -169,57 +169,21 @@ class NetworkFramework(object):
   def GetNetworkLabel(self, label):
     raise NotImplementedError("This function has not been implemented")
 
-  def Convert(self, image):
-    raise NotImplementedError("This function has not been implemented")
-
   def InitializeWeights(self):
     for weight in self.network.weights:
       weight.value = 0
 
   def Classify(self, image):
-    input = self.Convert(image)
-    self.FeedForwardFn(self.network, input)
+    self.FeedForwardFn(self.network, image)
     return self.GetNetworkLabel()
 
   def Performance(self, images):
-
     # Loop over the set of images and count the number correct.
     correct = 0
     for image in images:
       if self.Classify(image) == image.label:
         correct += 1
     return correct * 1.0 / len(images)
-
-  def Train(self, images, validation_images, tests, learning_rate, epochs):
-
-    # Convert the images and labels into a format the network can understand.
-    inputs = []
-    targets = []
-    for image in images:
-      inputs.append(self.Convert(image))
-      targets.append(self.EncodeLabel(image.label))
-
-    # Initializes performance log
-    performance_log = []
-    performance_log.append((self.Performance(images), self.Performance(validation_images), \
-                            self.Performance(tests)))
-    
-    # Loop through the specified number of training epochs.
-    for i in range(epochs):
-
-      # This calls your function in neural_net_impl.py.
-      self.TrainFn(self.network, inputs, targets, learning_rate, 1)
-
-      # Print out the current training and validation performance.
-      perf_train = self.Performance(images)
-      perf_validate = self.Performance(validation_images)
-      perf_test = self.Performance(tests)
-      print '%d Performance: %.8f %.3f' % (
-        i + 1, perf_train, perf_validate)
-
-      # updates log
-      performance_log.append((perf_train, perf_validate, perf_test))
-    return(performance_log)
 
   def RegisterFeedForwardFunction(self, fn):
     self.FeedForwardFn = fn
