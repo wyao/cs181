@@ -64,6 +64,8 @@ def run(options):
     l2 = player2_view.GetLife()
   
     if l1 <= 0 or l2 <= 0:
+      # Export neural network weights
+      player2.player.network.ExportWeights()
       if options.display:
         winner = 0
         if l1 < l2:

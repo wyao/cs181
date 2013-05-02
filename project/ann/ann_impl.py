@@ -1,6 +1,7 @@
 from ann import NeuralNetwork, NetworkFramework, Node, Target, Input
 import random
 import math
+import pickle
 import py.test
 
 INPUT = 1
@@ -98,7 +99,10 @@ class EncodedNetworkFramework(NetworkFramework):
       weight.value = random.uniform(-.01,.01)
 
   def ExportWeights(self):
-    pass
+    weights = [w.value for w in self.network.weights]
+    f = open("weights.txt","w")
+    pickle.dump(weights, f)
+    f.close()
 
 class HiddenNetwork(EncodedNetworkFramework):
   def __init__(self, number_of_hidden_nodes=15):
