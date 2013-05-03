@@ -11,5 +11,5 @@ def get_move(view, options):
   if hasPlant:
     for i in xrange(5):
       print view.GetImage()
-  time.sleep(0.1)
+  #time.sleep(0.1)
   return (random.randint(0, 4), hasPlant)
