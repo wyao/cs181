@@ -71,12 +71,32 @@ def get_move(view, options):
         state = (get_prob(view), round_down(score), visited(loc), new_steps, info)
         # Q-Learning
         Q_learning(last_state, state, last_action)
-        # Random for now
-        last_action = random.choice(actions)
+        # Explore
+        if to_explore():
+            last_action = random.choice(actions)
+        # Exploit
+        else:
+            last_action = exploit(state)
         last_state = state
     last_location = loc
     # time.sleep(0.1)
     return (last_action[DIRECTION], last_action[EAT])
+
+# TODO: Explore every action possible at a given state first across games
+def to_explore():
+    return int(random.random() < .1)
+
+def exploit(state):
+    choices = [(value,a) for (a,value) in Q[state].iteritems()]
+    # If first time seeing this state, bias using our belief of plant type
+    if max(choices)[0] == 0:
+        if state[PROB] == HIGH:
+            return (random.choice(moves), True)
+        if state[PROB] == MID:
+            return (random.choice(moves), random.choice([True,False]))
+        return (random.choice(moves), False)
+    # Else exploit using Q
+    return max(choices)[1]
 
 def round_down(n):
     return min(n - (n % SCORE_INCR), SCORE_MULT * START_SCORE)
@@ -87,6 +107,7 @@ def reward(s):
 def get_prob(view):
     return random.choice([LOW,MID,HIGH])
 
+# Get the actual last step that was taken
 def last_step(loc):
     global last_location
     x,y = last_location
