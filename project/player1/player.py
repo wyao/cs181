@@ -79,7 +79,7 @@ def get_move(view, options):
     return (last_action[DIRECTION], last_action[EAT])
 
 def round_down(n):
-    return n - (n % SCORE_INCR)
+    return min(n - (n % SCORE_INCR), SCORE_MULT * START_SCORE)
 
 def reward(s):
     return s[ENERGY]
