@@ -10,7 +10,7 @@ for line in f:
 x = 100
 win = 0.
 for i in xrange(1, len(l)+1):
-    if l[i] == 1:
+    if l[i-1] == 1:
         win += 1
     if i % x == 0:
         print int(i / x), win / x
