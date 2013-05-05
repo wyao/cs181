@@ -99,9 +99,9 @@ def run(options):
           print 'Player 2 wins: %d v. %d' % (l1, l2)
         else:
           print 'Player 1 wins: %d v. %d' % (l1, l2)
-      # Wait for input
-      sys.stdin.read(1)
       if options.display:
+        # Wait for input
+        sys.stdin.read(1)
         game_interface.curses_close()
       break
 
