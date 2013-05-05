@@ -71,6 +71,8 @@ def run(options):
         player2.player.network.ExportWeights(options.out_file)
       elif options.train == 2:
         print player2.player.correct / player2.player.instances
+      elif options.train == 3:
+        player2.player.ExportPlants(options.out_file)
       if options.display:
         winner = 0
         if l1 < l2:
