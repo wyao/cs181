@@ -5,8 +5,8 @@ import math
 import cPickle
 import time
 import game_interface as game
-from ann.ann import *
-from ann.ann_impl import *
+from code.ann import *
+from code.ann_impl import *
 import py.test
 
 # Constants

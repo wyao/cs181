@@ -1,7 +1,7 @@
 from ann import NeuralNetwork, NetworkFramework, Node, Target, Input
 import random
 import math
-import pickle
+import cPickle
 import py.test
 
 INPUT = 1
@@ -97,7 +97,7 @@ class EncodedNetworkFramework(NetworkFramework):
     """
     try:
       with open(file_name) as f:
-        serializedWeights = pickle.load(f)
+        serializedWeights = cPickle.load(f)
         f.close()
         for w,sw in zip(self.network.weights,serializedWeights):
           w.value = sw
@@ -109,7 +109,7 @@ class EncodedNetworkFramework(NetworkFramework):
   def ExportWeights(self, file_name):
     weights = [w.value for w in self.network.weights]
     f = open(file_name,"w")
-    pickle.dump(weights, f)
+    cPickle.dump(weights, f)
     f.close()
 
 class SimpleNetwork(EncodedNetworkFramework):

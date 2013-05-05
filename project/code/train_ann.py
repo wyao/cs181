@@ -1,4 +1,4 @@
-import pickle
+import cPickle
 from optparse import OptionParser
 import py.test
 import common
@@ -15,7 +15,7 @@ def train(opts):
     p_count = 0
     # Load samples
     f = open(opts.train_file, "r")
-    data = pickle.load(f)
+    data = cPickle.load(f)
     f.close()
     # Consolidate data
     h = {}
@@ -58,15 +58,15 @@ def test_performance(opts):
         # print network.Classify(d[1])
         if network.Classify(d[1]) == d[0]:
             correct += 1
-            if network.Classify(d[1]) > 0:
-                print "N+"
-            # else:
-            #     print "P+"
-        else:
-            if network.Classify(d[1]) > 0:
-                print "N-"
-            # else:
-            #     print "P-"
+            # if network.Classify(d[1]) > 0:
+            #     print "N+"
+            # # else:
+            # #     print "P+"
+        # else:
+        #     if network.Classify(d[1]) > 0:
+        #         print "N-"
+        #     # else:
+        #     #     print "P-"
         count += 1
     # Now for validation set
     if opts.v_file != None:
@@ -76,20 +76,20 @@ def test_performance(opts):
         n_correct = 0.
         n_count = 0.
         f = open(opts.v_file, "r")
-        validation = pickle.load(f)
+        validation = cPickle.load(f)
         f.close()
         for d in validation:
             if network.Classify(d[1]) == d[0]:
                 correct_ += 1
                 if network.Classify(d[1]) > 0:
-                    print "N+"
+                    # print "N+"
                     n_correct += 1
                     n_count += 1
                 # else:
                 #     print "P+"
             else:
                 if network.Classify(d[1]) > 0:
-                    print "N-"
+                    # print "N-"
                     n_count += 1
                 # else:
                 #     print "P-"

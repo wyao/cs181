@@ -1,6 +1,6 @@
 import common
-from ann.ann import *
-from ann.ann_impl import *
+from code.ann import *
+from code.ann_impl import *
 import game_interface as game
 
 learning_rate = 0.5
