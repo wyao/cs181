@@ -112,6 +112,20 @@ class EncodedNetworkFramework(NetworkFramework):
     pickle.dump(weights, f)
     f.close()
 
+class SimpleNetwork(EncodedNetworkFramework):
+  def __init__(self):
+    super(SimpleNetwork, self).__init__()
+
+    network = self.network
+    for _ in xrange(36):
+      network.AddNode(Node(), INPUT)
+
+    for _ in xrange(2):
+      node = Node()
+      for input_node in network.inputs:
+        node.AddInput(input_node, None, network)
+      network.AddNode(node, OUTPUT)
+
 class HiddenNetwork(EncodedNetworkFramework):
   def __init__(self, number_of_hidden_nodes=15):
     super(HiddenNetwork, self).__init__()
