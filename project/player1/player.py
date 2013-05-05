@@ -53,12 +53,12 @@ def get_move(view, options):
                                 states.append((p,e,v,d,s,i))
         # Initialize Q
         if options.q_in:
-            print "Initializing Q with", options.q_in
+            # print "Initializing Q with", options.q_in
             f = open(options.q_in, "r")
             Q = cPickle.load(f)
             f.close()
         else:
-            print "Initialize Q with 0."
+            # print "Initialize Q with 0."
             for s in states:
                 Q[s] = {}
                 for a in actions:
@@ -90,6 +90,7 @@ def get_move(view, options):
         last_score = score
     last_location = loc
     # time.sleep(0.1)
+    # print last_action[DIRECTION], last_action[EAT]
     return (last_action[DIRECTION], last_action[EAT])
 
 # TODO: Explore every action possible at a given state first across games

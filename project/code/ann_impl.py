@@ -97,13 +97,13 @@ class EncodedNetworkFramework(NetworkFramework):
     """
     try:
       with open(file_name) as f:
-        print "Initializing weights with", file_name
+        # print "Initializing weights with", file_name
         serializedWeights = cPickle.load(f)
         f.close()
         for w,sw in zip(self.network.weights,serializedWeights):
           w.value = sw
     except IOError:
-      print "Initializing weights randomly"
+      # print "Initializing weights randomly"
       for weight in self.network.weights:
         weight.value = random.uniform(-.01,.01)
 

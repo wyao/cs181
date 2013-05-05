@@ -18,7 +18,7 @@ def get_move(view, cmd, options, player_id):
   def timeout_handler(signum, frame):
     raise TimeoutException()
   signal.signal(signal.SIGALRM, timeout_handler)
-  signal.alarm(1)
+  # signal.alarm(1)
   try: 
     (mv, eat) = cmd(view,options)
     # Clear the alarm.
@@ -69,18 +69,18 @@ def run(options):
     if l1 <= 0 or l2 <= 0:
       # Export Q
       if options.q_out != None:
-        print "Exporting Q to", options.q_out
+        # print "Exporting Q to", options.q_out
         f = open(options.q_out, "w")
         cPickle.dump(player1.player.Q, f)
         f.close()
       # Export neural network weights
       if options.train == 1:
-        print "Exporting weights to", options.out_file
+        # print "Exporting weights to", options.out_file
         player2.player.network.ExportWeights(options.out_file)
       elif options.train == 2:
         print player2.player.correct / player2.player.instances
       elif options.train == 3:
-        print "Exporting plants to", options.out_file
+        # print "Exporting plants to", options.out_file
         player2.player.ExportPlants(options.out_file)
       if options.display:
         winner = 0
