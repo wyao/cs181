@@ -3,7 +3,6 @@ import time
 import random
 import math
 import cPickle
-import time
 import game_interface as game
 from code.ann import *
 from code.ann_impl import *
@@ -55,11 +54,9 @@ def get_move(view, options):
         # Initialize Q
         if options.q_in:
             print "Initializing Q with", options.q_in
-            start = time.time()
             f = open(options.q_in, "r")
             Q = cPickle.load(f)
             f.close()
-            print time.time() - start
         else:
             print "Initialize Q with 0."
             for s in states:
@@ -72,7 +69,7 @@ def get_move(view, options):
         last_state = (0., round_down(START_SCORE), False, distance(loc), info, False)
         # Setup neural network
         if network == None:
-            network = HiddenNetwork(options.hidden)
+            network = SimpleNetwork()
             network.FeedForwardFn = FeedForward
             network.TrainFn = Train
             network.InitializeWeights(options.in_file)
