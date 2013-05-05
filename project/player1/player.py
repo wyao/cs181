@@ -2,6 +2,8 @@ import common
 import time
 import random
 import game_interface as game
+from ann.ann import *
+from ann.ann_impl import *
 import py.test
 
 # Constants
@@ -35,9 +37,10 @@ last_action = None
 last_state = None
 last_location = None
 visited_locations = {}
+network = None
 
 def get_move(view, options):
-    global states, Q, START_SCORE, last_action, last_state, last_location
+    global states, Q, START_SCORE, last_action, last_state, last_location, network
     score = view.GetLife()
     info = view.GetPlantInfo()
     loc = (view.GetXPos(), view.GetYPos())
@@ -61,6 +64,12 @@ def get_move(view, options):
         last_action = (random.choice(moves), False)
         last_state = (0., round_down(START_SCORE), False, \
             tuple(K_MEMORY*[None]), info)
+        # Setup neural network
+        if network == None:
+            network = HiddenNetwork(options.hidden)
+            network.FeedForwardFn = FeedForward
+            network.TrainFn = Train
+            network.InitializeWeights(options.in_file)
     # Perform learning / make decision
     else:
         # Construct current state
@@ -105,7 +114,11 @@ def reward(s):
     return s[ENERGY]
 
 def get_prob(view):
-    return random.choice([LOW,MID,HIGH])
+    if network.Classify(view.GetImage()) == 1:
+        print 'HIGH'
+        return HIGH
+    print 'LOW'
+    return LOW
 
 # Get the actual last step that was taken
 def last_step(loc):
