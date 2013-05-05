@@ -1,6 +1,7 @@
 import common
 import time
 import random
+import math
 import game_interface as game
 from ann.ann import *
 from ann.ann_impl import *
@@ -9,26 +10,17 @@ import py.test
 # Constants
 LEARNING_RATE = 0.1
 GAMMA = 0.5
-[PROB,ENERGY,VISITED,STEPS,STATUS] = range(5)
+[PROB,ENERGY,VISITED,DISTANCE,STATUS,INCREASED] = range(6)
 [LOW,MID,HIGH] = range(3)
 [DIRECTION,EAT] = range(2)
 SCORE_MULT = 3
 SCORE_INCR = 10
-K_MEMORY = 2
+MAX_DISTANCE = 100
 # Dynamically generated constants
 START_SCORE = None
 moves = [game.UP,game.DOWN,game.LEFT,game.RIGHT]
 actions = [(m, True) for m in moves] + [(m, False) for m in moves]
 states = []
-steps_ = [()]
-for _ in xrange(K_MEMORY):
-    new_steps = []
-    for l in steps_:
-        for m in moves+[None]:
-            x = list(l)
-            x.append(m)
-            new_steps.append(tuple(x))
-    steps_ = new_steps
 status_ = [game.STATUS_UNKNOWN_PLANT, game.STATUS_NUTRITIOUS_PLANT, \
     game.STATUS_POISONOUS_PLANT, game.STATUS_NO_PLANT]
 # Globals
@@ -36,24 +28,28 @@ Q = {}
 last_action = None
 last_state = None
 last_location = None
+last_score = None
 visited_locations = {}
 network = None
 
 def get_move(view, options):
-    global states, Q, START_SCORE, last_action, last_state, last_location, network
+    global states, Q, START_SCORE, last_action, last_state, \
+        last_location, last_score, network
     score = view.GetLife()
     info = view.GetPlantInfo()
     loc = (view.GetXPos(), view.GetYPos())
     # Setup
     if Q == {}:
         START_SCORE = score
+        last_score = score
         # Initialize states
         for p in [LOW,MID,HIGH]:
             for e in range(0, SCORE_MULT * START_SCORE, 10):
                 for v in [True,False]:
-                    for k in steps_:
+                    for d in xrange(MAX_DISTANCE + 1):
                         for s in status_:
-                            states.append((p,e,v,k,s))
+                            for i in [True, False]:
+                                states.append((p,e,v,d,s,i))
         # Initialize Q
         for s in states:
             Q[s] = {}
@@ -62,8 +58,7 @@ def get_move(view, options):
         # Initial action
         visited(loc)
         last_action = (random.choice(moves), False)
-        last_state = (0., round_down(START_SCORE), False, \
-            tuple(K_MEMORY*[None]), info)
+        last_state = (0., round_down(START_SCORE), False, distance(loc), info, False)
         # Setup neural network
         if network == None:
             network = HiddenNetwork(options.hidden)
@@ -73,11 +68,9 @@ def get_move(view, options):
     # Perform learning / make decision
     else:
         # Construct current state
-        new_steps = list(last_state[STEPS])
-        del new_steps[0]
-        new_steps.append(last_step(loc))
-        new_steps = tuple(new_steps)
-        state = (get_prob(view), round_down(score), visited(loc), new_steps, info)
+        state = (get_prob(view), round_down(score), visited(loc), \
+            distance(loc), info, score > last_score)
+        print state
         # Q-Learning
         Q_learning(last_state, state, last_action)
         # Explore
@@ -87,6 +80,7 @@ def get_move(view, options):
         else:
             last_action = exploit(state)
         last_state = state
+        last_score = score
     last_location = loc
     # time.sleep(0.1)
     return (last_action[DIRECTION], last_action[EAT])
@@ -119,6 +113,11 @@ def get_prob(view):
         return HIGH
     print 'LOW'
     return LOW
+
+def distance(loc):
+    x,y = loc
+    x,y = float(x),float(y)
+    return min(int(math.sqrt(math.pow(x,2) + math.pow(y,2))), MAX_DISTANCE)
 
 # Get the actual last step that was taken
 def last_step(loc):
