@@ -73,6 +73,9 @@ def run(options):
         f = open(options.q_out, "w")
         cPickle.dump(player1.player.Q, f)
         f.close()
+        f = open(options.t_out, "w")
+        cPickle.dump(player1.player.t_count, f)
+        f.close()
       # Export neural network weights
       if options.train == 1:
         # print "Exporting weights to", options.out_file
@@ -122,6 +125,8 @@ def main(argv):
   parser.add_option("--out_file", type="string", default="weight.txt")
   parser.add_option("--q_in", type="string", default=None)
   parser.add_option("--q_out", type="string", default=None)
+  parser.add_option("--t_in", type="string", default=None)
+  parser.add_option("--t_out", type="string", default=None)
   (options, args) = parser.parse_args()
 
   try:

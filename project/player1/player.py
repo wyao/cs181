@@ -31,11 +31,12 @@ last_state = None
 last_location = None
 last_score = None
 visited_locations = {}
+t_count = {}
 network = None
 
 def get_move(view, options):
     global states, Q, START_SCORE, last_action, last_state, \
-        last_location, last_score, network
+        last_location, last_score, t_count, network
     score = view.GetLife()
     info = view.GetPlantInfo()
     loc = (view.GetXPos(), view.GetYPos())
@@ -63,6 +64,14 @@ def get_move(view, options):
                 Q[s] = {}
                 for a in actions:
                     Q[s][a] = 0.
+        # Initialize t_count
+        if options.t_in:
+            f = open(options.t_in, "r")
+            t_count = cPickle.load(f)
+            f.close()
+        else:
+            for s in states:
+                t_count[s] = 1.
         # Initial action
         visited(loc)
         last_action = (random.choice(moves), False)
@@ -81,11 +90,13 @@ def get_move(view, options):
         # Q-Learning
         Q_learning(last_state, state, last_action)
         # Explore
-        if to_explore():
+        if to_explore(state):
             last_action = random.choice(actions)
         # Exploit
         else:
             last_action = exploit(state)
+        # Update t_count
+            t_count[state] += 1
         last_state = state
         last_score = score
     last_location = loc
@@ -94,8 +105,12 @@ def get_move(view, options):
     return (last_action[DIRECTION], last_action[EAT])
 
 # TODO: Explore every action possible at a given state first across games
-def to_explore():
-    return int(random.random() < .1)
+def to_explore(state):
+    e = t_count[state]
+    # To preserve bias
+    if e > 1:
+        return int(random.random() < 1. / e)
+    return False
 
 def exploit(state):
     choices = [(value,a) for (a,value) in Q[state].iteritems()]
