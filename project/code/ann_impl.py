@@ -97,6 +97,7 @@ class EncodedNetworkFramework(NetworkFramework):
     """
     try:
       with open(file_name) as f:
+        print "Initializing weights with", file_name
         serializedWeights = cPickle.load(f)
         f.close()
         for w,sw in zip(self.network.weights,serializedWeights):
