@@ -15,7 +15,7 @@ GAMMA = 0.5
 [PROB,ENERGY,VISITED,DISTANCE,STATUS,INCREASED] = range(6)
 [LOW,MID,HIGH] = range(3)
 [DIRECTION,EAT] = range(2)
-SCORE_MULT = 3
+MAX_ENERGY = 200
 SCORE_INCR = 10
 MAX_DISTANCE = 100
 # Dynamically generated constants
@@ -46,7 +46,7 @@ def get_move(view, options):
         last_score = score
         # Initialize states
         for p in [LOW,MID,HIGH]:
-            for e in range(0, SCORE_MULT * START_SCORE + 1, 10):
+            for e in range(0, MAX_ENERGY + 1, 10):
                 for v in [True,False]:
                     for d in xrange(MAX_DISTANCE + 1):
                         for s in status_:
@@ -54,12 +54,14 @@ def get_move(view, options):
                                 states.append((p,e,v,d,s,i))
         # Initialize Q
         if options.q_in:
+            print "Initializing Q with", options.q_in
             start = time.time()
             f = open(options.q_in, "r")
             Q = cPickle.load(f)
             f.close()
             print time.time() - start
         else:
+            print "Initialize Q with 0."
             for s in states:
                 Q[s] = {}
                 for a in actions:
@@ -114,7 +116,7 @@ def exploit(state):
     return max(choices)[1]
 
 def round_down(n):
-    return min(n - (n % SCORE_INCR), SCORE_MULT * START_SCORE)
+    return min(n - (n % SCORE_INCR), MAX_ENERGY)
 
 def reward(s):
     return s[ENERGY]
