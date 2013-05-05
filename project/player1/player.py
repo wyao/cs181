@@ -2,6 +2,8 @@ import common
 import time
 import random
 import math
+import cPickle
+import time
 import game_interface as game
 from ann.ann import *
 from ann.ann_impl import *
@@ -44,17 +46,24 @@ def get_move(view, options):
         last_score = score
         # Initialize states
         for p in [LOW,MID,HIGH]:
-            for e in range(0, SCORE_MULT * START_SCORE, 10):
+            for e in range(0, SCORE_MULT * START_SCORE + 1, 10):
                 for v in [True,False]:
                     for d in xrange(MAX_DISTANCE + 1):
                         for s in status_:
                             for i in [True, False]:
                                 states.append((p,e,v,d,s,i))
         # Initialize Q
-        for s in states:
-            Q[s] = {}
-            for a in actions:
-                Q[s][a] = 0.
+        if options.q_in:
+            start = time.time()
+            f = open(options.q_in, "r")
+            Q = cPickle.load(f)
+            f.close()
+            print time.time() - start
+        else:
+            for s in states:
+                Q[s] = {}
+                for a in actions:
+                    Q[s][a] = 0.
         # Initial action
         visited(loc)
         last_action = (random.choice(moves), False)
@@ -70,7 +79,6 @@ def get_move(view, options):
         # Construct current state
         state = (get_prob(view), round_down(score), visited(loc), \
             distance(loc), info, score > last_score)
-        print state
         # Q-Learning
         Q_learning(last_state, state, last_action)
         # Explore
@@ -93,6 +101,10 @@ def exploit(state):
     choices = [(value,a) for (a,value) in Q[state].iteritems()]
     # If first time seeing this state, bias using our belief of plant type
     if max(choices)[0] == 0:
+        if state[INCREASED]:
+            return (random.choice(moves), True)
+        if state[STATUS] == game.STATUS_NUTRITIOUS_PLANT:
+            return (random.choice(moves), True)
         if state[PROB] == HIGH:
             return (random.choice(moves), True)
         if state[PROB] == MID:
@@ -109,9 +121,7 @@ def reward(s):
 
 def get_prob(view):
     if network.Classify(view.GetImage()) == 1:
-        print 'HIGH'
         return HIGH
-    print 'LOW'
     return LOW
 
 def distance(loc):

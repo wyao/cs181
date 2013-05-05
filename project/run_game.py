@@ -7,6 +7,7 @@ import signal
 import sys
 import time
 import traceback
+import cPickle
 from optparse import OptionParser
 
 class TimeoutException(Exception):
@@ -17,7 +18,7 @@ def get_move(view, cmd, options, player_id):
   def timeout_handler(signum, frame):
     raise TimeoutException()
   signal.signal(signal.SIGALRM, timeout_handler)
-  #signal.alarm(1)
+  # signal.alarm(1)
   try: 
     (mv, eat) = cmd(view,options)
     # Clear the alarm.
@@ -66,6 +67,11 @@ def run(options):
     l2 = player2_view.GetLife()
   
     if l1 <= 0 or l2 <= 0:
+      # Export Q
+      if options.q_out != None:
+        f = open(options.q_out, "w")
+        cPickle.dump(player1.player.Q, f)
+        f.close()
       # Export neural network weights
       if options.train == 1:
         player2.player.network.ExportWeights(options.out_file)
@@ -111,6 +117,8 @@ def main(argv):
   parser.add_option("--train", type=int, default=0)
   parser.add_option("--in_file", type="string", default="weight.txt")
   parser.add_option("--out_file", type="string", default="weight.txt")
+  parser.add_option("--q_in", type="string", default=None)
+  parser.add_option("--q_out", type="string", default=None)
   (options, args) = parser.parse_args()
 
   try:
