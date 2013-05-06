@@ -110,6 +110,7 @@ def get_move(view, options):
 
 # TODO: Explore every action possible at a given state first across games
 def to_explore(state):
+    return False
     e = t_count[state]
     # To preserve bias
     if e > 1:

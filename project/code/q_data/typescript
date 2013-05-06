@@ -1,0 +1,7 @@
+Script started on Sun May  5 21:15:48 2013
+[?1034h21:15:48/q_data/$python run_game.py -d0 --in_file player1/e5_l03.weights -i1000 --q_in code/q_data/default1000.q[1P000.q[1P000.q[1P000.q[1P000.q[1P000.q[1P000.q[1P000.q[1P000.q5000.q[C[C[C[C[C[C
+python: can't open file 'run_game.py': [Errno 2] No such file or directory
+21:16:04/q_data/$python run_game.py -d0 --in_file player1/e5_l03.weights -i1000 --q_in code/q_data/5000.q[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[Kcd .[K[K[K[Kq[Kexit
+exit
+
+Script done on Sun May  5 21:16:10 2013
