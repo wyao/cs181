@@ -1,17 +1,12 @@
 import common
-import player1.player
-import player2.player
+import player.player
 import game_interface
 import random
 import signal
 import sys
 import time
 import traceback
-import cPickle
 from optparse import OptionParser
-
-# sample use
-# python run_game.py -d0 --in_file player1/e5_l03.weights --q_out player1/default50000.q -i30000 --t_out player1/50000.t --t_in player1/20000.t --q_in player1/default20000.q
 
 class TimeoutException(Exception):
   def __init__(self):
@@ -21,9 +16,9 @@ def get_move(view, cmd, options, player_id):
   def timeout_handler(signum, frame):
     raise TimeoutException()
   signal.signal(signal.SIGALRM, timeout_handler)
-  # signal.alarm(1)
+  signal.alarm(1)
   try: 
-    (mv, eat) = cmd(view,options)
+    (mv, eat) = cmd(view)
     # Clear the alarm.
     signal.alarm(0)
   except TimeoutException:
@@ -53,20 +48,14 @@ def run(options):
   
   # Keep running until one player runs out of life.
   while True:
-    (mv1, eat1) = get_move(player1_view, player1.player.get_move, options, 1)
-    if options.train != 0:
-      (mv2, eat2) = get_move(player2_view, player2.player.get_move, options, 2)
-    else:
-      (mv2, eat2) = get_move(player2_view, common.get_move, options, 2)
+    (mv1, eat1) = get_move(player1_view, player.player.get_move, options, 1)
+    (mv2, eat2) = get_move(player2_view, common.get_move, options, 2)
+
     game.ExecuteMoves(mv1, eat1, mv2, eat2)
-
-    # No longer new game
-    options.new_game = False
-
-    if options.display == 1:
+    if options.display:
       game_interface.curses_draw_board(game)
       game_interface.curses_init_round(game)
-    elif options.display == 2:
+    else:
       print mv1, eat1, mv2, eat2
       print player1_view.GetLife(), player2_view.GetLife()
     # Check whether someone's life is negative.
@@ -74,24 +63,6 @@ def run(options):
     l2 = player2_view.GetLife()
   
     if l1 <= 0 or l2 <= 0:
-      # # Export Q
-      # if options.q_out != None:
-      #   # print "Exporting Q to", options.q_out
-      #   f = open(options.q_out, "w")
-      #   cPickle.dump(player1.player.Q, f)
-      #   f.close()
-      #   f = open(options.t_out, "w")
-      #   cPickle.dump(player1.player.t_count, f)
-      #   f.close()
-      # # Export neural network weights
-      # if options.train == 1:
-      #   # print "Exporting weights to", options.out_file
-      #   player2.player.network.ExportWeights(options.out_file)
-      # elif options.train == 2:
-      #   print player2.player.correct / player2.player.instances
-      # elif options.train == 3:
-      #   # print "Exporting plants to", options.out_file
-      #   player2.player.ExportPlants(options.out_file)
       if options.display:
         winner = 0
         if l1 < l2:
@@ -106,9 +77,9 @@ def run(options):
           print 'Player 2 wins: %d v. %d' % (l1, l2)
         else:
           print 'Player 1 wins: %d v. %d' % (l1, l2)
+      # Wait for input
+      sys.stdin.read(1)
       if options.display:
-        # Wait for input
-        sys.stdin.read(1)
         game_interface.curses_close()
       break
 
@@ -122,41 +93,20 @@ def main(argv):
                     help="penalty for eating a poisonous plant",type=int)
   parser.add_option("--observation_cost", dest="observation_cost", default=1,
                     help="cost for getting an image for a plant",type=int)
-  parser.add_option("-s", "--starting_life", dest="starting_life", default=100,
+  parser.add_option("--starting_life", dest="starting_life", default=100,
                     help="starting life",type=int)
   parser.add_option("--life_per_turn", dest="life_per_turn", default=1,
                     help="life spent per turn",type=int)
-  parser.add_option("--hidden", type=int, default=15)
-  parser.add_option("--train", type=int, default=0)
-  parser.add_option("--in_file", type="string", default="weight.txt")
-  parser.add_option("--out_file", type="string", default="weight.txt")
-  parser.add_option("--q_in", type="string", default=None)
-  parser.add_option("--q_out", type="string", default=None)
-  parser.add_option("--t_in", type="string", default=None)
-  parser.add_option("--t_out", type="string", default=None)
-  parser.add_option("-i", type=int, default=1)
   (options, args) = parser.parse_args()
 
-  for i in xrange(options.i):
-    print i + 1
-    options.new_game = True
-    try:
-      run(options)
-    except KeyboardInterrupt:
-      if options.display:
-        game_interface.curses_close()
-    except:
+  try:
+    run(options)
+  except KeyboardInterrupt:
+    if options.display:
       game_interface.curses_close()
-      traceback.print_exc(file=sys.stdout)
-
-  if options.q_out != None:
-    f = open(options.q_out, "w")
-    cPickle.dump(player1.player.Q, f)
-    f.close()
-  if options.t_out != None:
-    f = open(options.t_out, "w")
-    cPickle.dump(player1.player.t_count, f)
-    f.close()
+  except:
+    game_interface.curses_close()
+    traceback.print_exc(file=sys.stdout)
 
 if __name__ == '__main__':
   main(sys.argv)
