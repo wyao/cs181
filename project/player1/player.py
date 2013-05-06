@@ -72,16 +72,20 @@ def get_move(view, options):
         else:
             for s in states:
                 t_count[s] = 1.
-        # Initial action
-        visited(loc)
-        last_action = (random.choice(moves), False)
-        last_state = (0., round_down(START_SCORE), False, distance(loc), info, False)
         # Setup neural network
         if network == None:
             network = SimpleNetwork()
             network.FeedForwardFn = FeedForward
             network.TrainFn = Train
             network.InitializeWeights(options.in_file)
+        # Start of new game
+        visited(loc)
+        last_action = (random.choice(moves), False)
+        last_state = (0., round_down(START_SCORE), False, distance(loc), info, False)
+    elif options.new_game:
+        visited(loc)
+        last_action = (random.choice(moves), False)
+        last_state = (0., round_down(START_SCORE), False, distance(loc), info, False)
     # Perform learning / make decision
     else:
         # Construct current state

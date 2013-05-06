@@ -7,7 +7,7 @@ for line in f:
     elif line.find("Player 2") > -1:
         l.append(2)
 
-x = 100
+x = 1000
 win = 0.
 for i in xrange(1, len(l)+1):
     if l[i-1] == 1:
